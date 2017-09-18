@@ -1,6 +1,6 @@
 ﻿using ir.EmIT.EmITBotNet;
 
-namespace TeleZanbil
+namespace ir.EmIT.TeleZanbil
 {
     class Program
     {
