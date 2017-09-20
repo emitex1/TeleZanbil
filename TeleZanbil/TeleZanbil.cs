@@ -55,7 +55,7 @@ namespace ir.EmIT.TeleZanbil
                 tzdb.Roles.Add(new Role() { RoleName = "Father" });
                 tzdb.Roles.Add(new Role() { RoleName = "Normal" });
 
-                //tzdb.users.Add(new Models.User() { TelegramUserID = 88008464, UserRole = new Role() { RoleName = "Admin" } });
+                tzdb.Users.Add(new Models.User() { TelegramUserID = 88008464, UserRole = adminRole });
             }
         }
 
