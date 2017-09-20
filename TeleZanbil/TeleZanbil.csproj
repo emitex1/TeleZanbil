@@ -71,7 +71,16 @@
     <Compile Include="Migrations\201709190404125_init.Designer.cs">
       <DependentUpon>201709190404125_init.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201709201124290_init1.cs" />
+    <Compile Include="Migrations\201709201124290_init1.Designer.cs">
+      <DependentUpon>201709201124290_init1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201709201132511_init2.cs" />
+    <Compile Include="Migrations\201709201132511_init2.Designer.cs">
+      <DependentUpon>201709201132511_init2.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\Family.cs" />
     <Compile Include="Models\Role.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Program.cs" />
@@ -92,10 +101,17 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ApiKey.txt" />
+    <Content Include="Images\AboutZanbil.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201709190404125_init.resx">
       <DependentUpon>201709190404125_init.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709201124290_init1.resx">
+      <DependentUpon>201709201124290_init1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709201132511_init2.resx">
+      <DependentUpon>201709201132511_init2.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

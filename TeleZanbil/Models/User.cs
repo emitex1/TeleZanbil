@@ -4,6 +4,6 @@
     {
         public int UserId { get; set; }
         public long TelegramUserID { get; set; }
-        public Role UserRole { get; set; }
+        public virtual Role UserRole { get; set; }
     }
 }

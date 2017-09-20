@@ -12,7 +12,9 @@ namespace ir.EmIT.TeleZanbil
             AppDomain.CurrentDomain.SetData("DataDirectory", System.IO.Directory.GetCurrentDirectory());
         }
 
-        public DbSet<User> users { get; set; }
-        public DbSet<Role> roles { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
+
+        public DbSet<Family> Families { get; set; }
     }
 }

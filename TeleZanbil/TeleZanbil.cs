@@ -14,28 +14,32 @@ namespace ir.EmIT.TeleZanbil
     {
         class TeleZanbilStates : BotStates
         {
-            public static BotState CheckUserType = new BotState(2, "");
+            public static BotState CheckUserType = new BotState(2, "بررسی نوع کاربر");
             public static BotState GetMainCommand = new BotState(3, "گرفتن دستور اصلی");
-            public static BotState ShowAboutUs = new BotState(4, "");
-            public static BotState StartRegFamily = new BotState(5, "");
-            public static BotState GetFamilyName = new BotState(6, "");
-            public static BotState RegisterFamily = new BotState(7, "");
-            public static BotState ShowZanbilContentForFather = new BotState(8, "");
-            public static BotState AcceptZanbilItem = new BotState(9, "تایید آیتم زنبیل");
+            public static BotState ShowAboutUs = new BotState(4, "نمایش درباره ما");
+            public static BotState StartRegFamily = new BotState(5, "شروع روال ثبت خانواده");
+            public static BotState GetFamilyName = new BotState(6, "دریافت اسم خانواده");
+            public static BotState RegisterFamily = new BotState(7, "ثبت خانواده");
+            public static BotState ShowZanbilContentForFather = new BotState(8, "نمایش محتوی زنبیل برای پدر");
+            public static BotState AcceptZanbilItem = new BotState(9, "تایید خرید آیتم زنبیل");
             public static BotState AddNewZanbilItem = new BotState(10, "اضافه کردن آیتم جدید به زنبیل");
 
             public static BotState ShowInvalidCommand = new BotState(11, "نمایش ورودی نامعتبر");
+            public static BotState Login = new BotState(12, "ورود اعضای خانواده");
 
             public static BotState ShowZanbilContentForNormalUser = new BotState(18, "نمایش محتوی زنبیل برای کاربر عادی");
 
             public static BotState ShowAdminMenu = new BotState(30, "نمایش منوی مدیر سیستم");
         }
 
+        //todo: تبدیل این ساختار سشن فعلی به متغیرهای موجود در محیط
         internal class TeleZanbilSessionData : SessionData
         {
             public TeleZanbilSessionData(long userID) : base(userID)
             {
             }
+
+            public string familyName;
         }
 
         internal TeleZanbilSessionData currentTZSessionData;
@@ -45,11 +49,11 @@ namespace ir.EmIT.TeleZanbil
         {
             tzdb = (TeleZanbilContext)db;
 
-            if (tzdb.roles.Count() == 0)
+            if (tzdb.Roles.Count() == 0)
             {
-                var adminRole = tzdb.roles.Add(new Role() { RoleName = "Admin" });
-                tzdb.roles.Add(new Role() { RoleName = "Father" });
-                tzdb.roles.Add(new Role() { RoleName = "Normal" });
+                var adminRole = tzdb.Roles.Add(new Role() { RoleName = "Admin" });
+                tzdb.Roles.Add(new Role() { RoleName = "Father" });
+                tzdb.Roles.Add(new Role() { RoleName = "Normal" });
 
                 //tzdb.users.Add(new Models.User() { TelegramUserID = 88008464, UserRole = new Role() { RoleName = "Admin" } });
             }
@@ -70,7 +74,7 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRulePostFunction(TeleZanbilStates.CheckUserType, TeleZanbilStates.Start, (PostFunctionData pfd) =>
             {
                 string roleName = "";
-                var user = tzdb.users.Where(u => u.TelegramUserID == pfd.m.Chat.Id);
+                var user = tzdb.Users.Where(u => u.TelegramUserID == pfd.m.Chat.Id);
                 if (user.Count() > 0)
                     roleName = user.First().UserRole.RoleName;
                 actUsingCustomAction(pfd.m, roleName);
@@ -85,7 +89,31 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRulePostFunction(TeleZanbilStates.ShowAboutUs, async (PostFunctionData pfd) =>
             {
                 //todo نوشتن تابع حذف آخرین کیبورد
+                //todo: تکمیل متن و عکس درباره ما
                 await bot.SendTextMessageAsync(pfd.target, "تله زنبیل\nمدیریت زنبیل خانواده");
+                actUsingLambdaAction(pfd.m);
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.StartRegFamily, (PostFunctionData pfd) =>
+            {
+                actUsingLambdaAction(pfd.m);
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.GetFamilyName, async (PostFunctionData pfd) =>
+            {
+                await bot.SendTextMessageAsync(pfd.target, "لطفاً نام خانواده خود را وارد نمائید");
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContentForFather, async (PostFunctionData pfd) =>
+            {
+                await bot.SendTextMessageAsync(pfd.target, "نمایش محتوی زنبیل برای پدر");
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.RegisterFamily, (PostFunctionData pfd) =>
+            {
+                currentTZSessionData.familyName = pfd.action;
+                //todo: بررسی تکراری نبودن خانواده
+                tzdb.Families.Add(new Family() { FamilyName = currentTZSessionData.familyName });
                 actUsingLambdaAction(pfd.m);
             });
 
@@ -111,6 +139,7 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRule(TeleZanbilStates.GetMainCommand, 1, TeleZanbilStates.StartRegFamily);
             nfa.addRule(TeleZanbilStates.GetMainCommand, 2, TeleZanbilStates.ShowAboutUs);
+            nfa.addRule(TeleZanbilStates.GetMainCommand, 3, TeleZanbilStates.Login);
             nfa.addElseRule(TeleZanbilStates.GetMainCommand, TeleZanbilStates.ShowInvalidCommand);
 
             nfa.addRule(TeleZanbilStates.ShowAboutUs, TeleZanbilStates.GetMainCommand);
@@ -119,7 +148,9 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRule(TeleZanbilStates.StartRegFamily, TeleZanbilStates.GetFamilyName);
 
-            nfa.addRule(TeleZanbilStates.GetFamilyName, TeleZanbilStates.RegisterFamily);
+            nfa.addRegexRule(TeleZanbilStates.GetFamilyName, ".*", TeleZanbilStates.RegisterFamily);
+
+            nfa.addRule(TeleZanbilStates.RegisterFamily, TeleZanbilStates.ShowZanbilContentForFather);
         }
 
         public override List<long> getAuthenticatedUsers()
