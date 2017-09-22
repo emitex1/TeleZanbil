@@ -91,12 +91,10 @@ namespace ir.EmIT.TeleZanbil
                 //todo نوشتن تابع حذف آخرین کیبورد
                 //todo: تکمیل متن و عکس درباره ما
                 await bot.SendTextMessageAsync(pfd.target, "تله زنبیل\nمدیریت زنبیل خانواده");
-                actUsingLambdaAction(pfd.m);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.StartRegFamily, (PostFunctionData pfd) =>
             {
-                actUsingLambdaAction(pfd.m);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.GetFamilyName, async (PostFunctionData pfd) =>
@@ -106,21 +104,25 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContentForFather, async (PostFunctionData pfd) =>
             {
-                await bot.SendTextMessageAsync(pfd.target, "نمایش محتوی زنبیل برای پدر");
+                await bot.SendTextMessageAsync(pfd.target, "نمایش محتوی زنبیل برای پدر خانواده " + currentTZSessionData.familyName);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.RegisterFamily, (PostFunctionData pfd) =>
             {
                 currentTZSessionData.familyName = pfd.action;
                 //todo: بررسی تکراری نبودن خانواده
-                tzdb.Families.Add(new Family() { FamilyName = currentTZSessionData.familyName });
-                actUsingLambdaAction(pfd.m);
+                var family = tzdb.Families.Add(new Family() { FamilyName = currentTZSessionData.familyName });
+                tzdb.SaveChanges();
+
+                var fatherRole = tzdb.Roles.Where(r => r.RoleName == "Father").First();
+                tzdb.Users.Add(new Models.User() { UserRole = fatherRole, TelegramUserID = pfd.m.Chat.Id, UserFamily = family });
+                
+                tzdb.SaveChanges();
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowAdminMenu, TeleZanbilStates.CheckUserType, async (PostFunctionData pfd) =>
             {
                 await bot.SendTextMessageAsync(pfd.target, "منوی مدیر سیستم");
-                //actUsingLambdaAction(pfd.m);
             });
 
             //nfa.addRulePostFunction(TeleZanbilStates.GetMainCommand, (PostFunctionData pfd) =>
