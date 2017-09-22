@@ -87,13 +87,17 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRulePostFunction(TeleZanbilStates.CheckUserType, TeleZanbilStates.Start, (PostFunctionData pfd) =>
             {
                 string roleName = "";
+
+                // بررسی اینکه آیا کاربری متناظر کاربر جاری بات در دیتابیس وجود دارد یا نه؟
                 var userList = tzdb.Users.Where(u => u.TelegramUserID == pfd.m.Chat.Id);
                 if (userList.Count() > 0)
                 {
                     var user = userList.First();
 
+                    // گرفتن نقش کاربر جاری (ذخیره شده در دیتابیس)
                     roleName = user.UserRole.RoleName;
 
+                    // ذخیره کردن اطلاعات خانواده کاربر جاری در داده های جلسه، در صورتی که شخص ورودی پدر باشد
                     if (roleName == "Father")
                     {
                         int familyID = user.UserFamily.FamilyId;
@@ -101,6 +105,7 @@ namespace ir.EmIT.TeleZanbil
                     }
                 }
 
+                // ایجاد یک عمل (اکشن) جدید با استفاده از نقش کاربر جاری
                 actUsingCustomAction(pfd.m, roleName);
             });
 
@@ -128,16 +133,24 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContentForFather, async (PostFunctionData pfd) =>
             {
+                // گرفتن زنبیل اصلی خانواده
                 var mainZanbil = tzdb.Zanbils.Where(z => z.Family.FamilyId == currentTZSessionData.family.FamilyId).First();
+
+                // گرفتن لیست آیتم های زنبیل اصلی
                 var zanbilItems = tzdb.ZanbilItems.Where(zi => zi.Zanbil.ZanbilId == mainZanbil.ZanbilId);
+
+                // ساخت لیست رشته شامل معرفی آیتم های زنبیل
                 string[] zanbilItemsTitle = new string[zanbilItems.Count()];
                 for (int i = 0; i < zanbilItems.Count(); i++)
                 {
                     ZanbilItem zi = zanbilItems.ToArray<ZanbilItem>()[i];
                     zanbilItemsTitle[i] = zi.ItemTitle + " (" + zi.ItemAmount + " " + zi.ItemUnit.Title + ")";
                 }
+
+                // ساخت کیبورد عمودی با استفاده از لیست آیتم های زنبیل
                 InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeVerticalKeyboard(zanbilItemsTitle);
 
+                // نمایش پیام و کیبورد لیست آیتم های زنبیل
                 await bot.SendTextMessageAsync(pfd.target, "زنبیل خانواده " + currentTZSessionData.family.FamilyName, replyMarkup: zanbilContentKeyboard);
             });
 
