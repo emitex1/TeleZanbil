@@ -40,6 +40,7 @@ namespace ir.EmIT.TeleZanbil
             }
 
             public string familyName;
+            public Family family;
         }
 
         internal TeleZanbilSessionData currentTZSessionData;
@@ -56,6 +57,19 @@ namespace ir.EmIT.TeleZanbil
                 tzdb.Roles.Add(new Role() { RoleName = "Normal" });
 
                 //tzdb.Users.Add(new Models.User() { TelegramUserID = 88008464, UserRole = adminRole });
+            }
+
+            if (tzdb.Units.Count() == 0)
+            {
+                tzdb.Units.Add(new Unit() { Title = "عدد" });
+                tzdb.Units.Add(new Unit() { Title = "بسته" });
+                tzdb.Units.Add(new Unit() { Title = "کیلوگرم" });
+                tzdb.Units.Add(new Unit() { Title = "گرم" });
+                tzdb.Units.Add(new Unit() { Title = "میلی گرم" });
+                tzdb.Units.Add(new Unit() { Title = "متر" });
+                tzdb.Units.Add(new Unit() { Title = "سانتی متر" });
+                tzdb.Units.Add(new Unit() { Title = "میلی متر" });
+                tzdb.Units.Add(new Unit() { Title = "لیتر" });
             }
         }
 
@@ -77,6 +91,10 @@ namespace ir.EmIT.TeleZanbil
                 var user = tzdb.Users.Where(u => u.TelegramUserID == pfd.m.Chat.Id);
                 if (user.Count() > 0)
                     roleName = user.First().UserRole.RoleName;
+
+                //todo: پیدا کردن خانواده متناظر این کاربر و ذخیره در جلسه
+                //if(roleName == "Father")
+                    //currentTZSessionData.family = tzdb.Families.Where(f => f.)
                 actUsingCustomAction(pfd.m, roleName);
             });
 
@@ -104,20 +122,41 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContentForFather, async (PostFunctionData pfd) =>
             {
-                await bot.SendTextMessageAsync(pfd.target, "نمایش محتوی زنبیل برای پدر خانواده " + currentTZSessionData.familyName);
+                var mainZanbil = tzdb.Zanbils.Where(z => z.Family.FamilyId == currentTZSessionData.family.FamilyId).First();
+                var zanbilItems = tzdb.ZanbilItems.Where(zi => zi.Zanbil.ZanbilId == mainZanbil.ZanbilId);
+                string[] zanbilItemsTitle = new string[zanbilItems.Count()];
+                for (int i = 0; i < zanbilItems.Count(); i++)
+                {
+                    ZanbilItem zi = zanbilItems.ToArray<ZanbilItem>()[i];
+                    zanbilItemsTitle[i] = zi.ItemTitle + " (" + zi.ItemAmount + " " + zi.ItemUnit.Title + ")";
+                }
+                InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeVerticalKeyboard(zanbilItemsTitle);
+
+                await bot.SendTextMessageAsync(pfd.target, "زنبیل خانواده " + currentTZSessionData.family.FamilyName, replyMarkup: zanbilContentKeyboard);
             });
 
+            // ثبت خانواده
             nfa.addRulePostFunction(TeleZanbilStates.RegisterFamily, (PostFunctionData pfd) =>
             {
+                // گرفتن اسم خانواده از ورودی کاربر
                 currentTZSessionData.familyName = pfd.action;
+
                 //todo: بررسی تکراری نبودن خانواده
+                //ثبت خانواده
                 var family = tzdb.Families.Add(new Family() { FamilyName = currentTZSessionData.familyName });
+                currentTZSessionData.family = family;
                 tzdb.SaveChanges();
 
+                // ثبت کاربر و زنبیل اصلی مربوط به این خانواده
                 var fatherRole = tzdb.Roles.Where(r => r.RoleName == "Father").First();
                 tzdb.Users.Add(new Models.User() { UserRole = fatherRole, TelegramUserID = pfd.m.Chat.Id, UserFamily = family });
-                
+                var mainZanbil = tzdb.Zanbils.Add(new Zanbil() { ZanbilName = "زنبیل اصلی خانواده " + currentTZSessionData.familyName, Family = family });
                 tzdb.SaveChanges();
+
+                /*tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = "سیب", ItemAmount = 5, Zanbil = mainZanbil, IsBought = false, ItemUnit = tzdb.Units.Where(u => u.Title == "عدد").First(), BuyDate = DateTime.Now });
+                tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = "شیر", ItemAmount = 2, Zanbil = mainZanbil, IsBought = false, ItemUnit = tzdb.Units.Where(u => u.Title == "لیتر").First(), BuyDate = DateTime.Now });
+                tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = "پنیر", ItemAmount = 1, Zanbil = mainZanbil, IsBought = false, ItemUnit = tzdb.Units.Where(u => u.Title == "بسته").First(), BuyDate = DateTime.Now });
+                tzdb.SaveChanges();*/
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowAdminMenu, TeleZanbilStates.CheckUserType, async (PostFunctionData pfd) =>

@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ir.EmIT.TeleZanbil.Models
 {
@@ -9,5 +7,6 @@ namespace ir.EmIT.TeleZanbil.Models
         public int FamilyId { get; set; }
         public string FamilyName { get; set; }
         public IList<User> Users { get; set; }
+        public IList<Zanbil> Zanbils { get; set; }
     }
 }

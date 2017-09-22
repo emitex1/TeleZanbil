@@ -14,7 +14,9 @@ namespace ir.EmIT.TeleZanbil
 
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
-
         public DbSet<Family> Families { get; set; }
+        public DbSet<Unit> Units { get; set; }
+        public DbSet<Zanbil> Zanbils { get; set; }
+        public DbSet<ZanbilItem> ZanbilItems { get; set; }
     }
 }
