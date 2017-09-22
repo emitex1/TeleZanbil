@@ -84,6 +84,11 @@ namespace ir.EmIT.TeleZanbil
 
         public override void defineNFARulePostFunctions()
         {
+            nfa.addRulePostFunction(TeleZanbilStates.Start, TeleZanbilStates.Start, async (PostFunctionData pfd) =>
+            {
+                await bot.SendTextMessageAsync(pfd.target, "لطفاً برای شروع از دستور زیر استفاده کنید :\n/start");
+            });
+
             nfa.addRulePostFunction(TeleZanbilStates.CheckUserType, TeleZanbilStates.Start, (PostFunctionData pfd) =>
             {
                 string roleName = "";
@@ -192,6 +197,7 @@ namespace ir.EmIT.TeleZanbil
         public override void defineNFARules()
         {
             nfa.addRule(TeleZanbilStates.Start, "/start", TeleZanbilStates.CheckUserType);
+            nfa.addElseRule(TeleZanbilStates.Start, TeleZanbilStates.Start);
 
             nfa.addRule(TeleZanbilStates.CheckUserType, "", TeleZanbilStates.GetMainCommand);
             nfa.addRule(TeleZanbilStates.CheckUserType, "Admin", TeleZanbilStates.ShowAdminMenu);
@@ -212,6 +218,17 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRegexRule(TeleZanbilStates.GetFamilyName, ".*", TeleZanbilStates.RegisterFamily);
 
             nfa.addRule(TeleZanbilStates.RegisterFamily, TeleZanbilStates.ShowZanbilContentForFather);
+
+            nfa.addRule(TeleZanbilStates.GetMainCommand, 3, TeleZanbilStates.Login);
+
+            /*
+            AcceptZanbilItem
+            AddNewZanbilItem
+            ShowInvalidCommand
+            Login
+            ShowZanbilContentForNormalUser
+            ShowAdminMenu
+            */
         }
 
         public override List<long> getAuthenticatedUsers()
