@@ -39,7 +39,6 @@ namespace ir.EmIT.TeleZanbil
             {
             }
 
-            public string familyName;
             public Family family;
         }
 
@@ -88,13 +87,20 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRulePostFunction(TeleZanbilStates.CheckUserType, TeleZanbilStates.Start, (PostFunctionData pfd) =>
             {
                 string roleName = "";
-                var user = tzdb.Users.Where(u => u.TelegramUserID == pfd.m.Chat.Id);
-                if (user.Count() > 0)
-                    roleName = user.First().UserRole.RoleName;
+                var userList = tzdb.Users.Where(u => u.TelegramUserID == pfd.m.Chat.Id);
+                if (userList.Count() > 0)
+                {
+                    var user = userList.First();
 
-                //todo: پیدا کردن خانواده متناظر این کاربر و ذخیره در جلسه
-                //if(roleName == "Father")
-                    //currentTZSessionData.family = tzdb.Families.Where(f => f.)
+                    roleName = user.UserRole.RoleName;
+
+                    if (roleName == "Father")
+                    {
+                        int familyID = user.UserFamily.FamilyId;
+                        currentTZSessionData.family = tzdb.Families.Where(f => f.FamilyId == familyID).First();
+                    }
+                }
+
                 actUsingCustomAction(pfd.m, roleName);
             });
 
@@ -139,18 +145,19 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRulePostFunction(TeleZanbilStates.RegisterFamily, (PostFunctionData pfd) =>
             {
                 // گرفتن اسم خانواده از ورودی کاربر
-                currentTZSessionData.familyName = pfd.action;
+                //currentTZSessionData.familyName = pfd.action;
+                string familyName = pfd.action;
 
                 //todo: بررسی تکراری نبودن خانواده
                 //ثبت خانواده
-                var family = tzdb.Families.Add(new Family() { FamilyName = currentTZSessionData.familyName });
+                var family = tzdb.Families.Add(new Family() { FamilyName = familyName });
                 currentTZSessionData.family = family;
                 tzdb.SaveChanges();
 
                 // ثبت کاربر و زنبیل اصلی مربوط به این خانواده
                 var fatherRole = tzdb.Roles.Where(r => r.RoleName == "Father").First();
                 tzdb.Users.Add(new Models.User() { UserRole = fatherRole, TelegramUserID = pfd.m.Chat.Id, UserFamily = family });
-                var mainZanbil = tzdb.Zanbils.Add(new Zanbil() { ZanbilName = "زنبیل اصلی خانواده " + currentTZSessionData.familyName, Family = family });
+                var mainZanbil = tzdb.Zanbils.Add(new Zanbil() { ZanbilName = "زنبیل اصلی خانواده " + familyName, Family = family });
                 tzdb.SaveChanges();
 
                 /*tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = "سیب", ItemAmount = 5, Zanbil = mainZanbil, IsBought = false, ItemUnit = tzdb.Units.Where(u => u.Title == "عدد").First(), BuyDate = DateTime.Now });
