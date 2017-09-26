@@ -40,6 +40,7 @@ namespace ir.EmIT.TeleZanbil
             }
 
             public Family family;
+            public int lastMsgId;
         }
 
         internal TeleZanbilSessionData currentTZSessionData;
@@ -86,7 +87,7 @@ namespace ir.EmIT.TeleZanbil
         {
             nfa.addRulePostFunction(TeleZanbilStates.Start, TeleZanbilStates.Start, async (PostFunctionData pfd) =>
             {
-                await bot.SendTextMessageAsync(pfd.target, "لطفاً برای شروع از دستور زیر استفاده کنید :\n/start");
+                await bot.SendTextMessageAsync(pfd.target, "لطفاً برای شروع 🏃 از دستور زیر استفاده کنید :\n/start");
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.CheckUserType, TeleZanbilStates.Start, (PostFunctionData pfd) =>
@@ -116,10 +117,14 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.GetMainCommand, async (PostFunctionData pfd) =>
             {
-                InlineKeyboardMarkup mainKeyboard = KeyboardGenerator.makeKeyboard(new string[] { "ثبت خانواده جدید", "درباره تله زنبیل" }, 2, false);
+                InlineKeyboardMarkup mainKeyboard = KeyboardGenerator.makeKeyboard(new string[] {
+                    "ثبت خانواده 👨‍👩‍👧‍👧 جدید",
+                    "درباره 💡 تله زنبیل"
+                }, 2, false);
                 await bot.SendTextMessageAsync(pfd.target, "لطفاً انتخاب کنید", replyMarkup: mainKeyboard);
             });
 
+            // نمایش درباره ما
             nfa.addRulePostFunction(TeleZanbilStates.ShowAboutUs, async (PostFunctionData pfd) =>
             {
                 //todo نوشتن تابع حذف آخرین کیبورد
@@ -127,36 +132,10 @@ namespace ir.EmIT.TeleZanbil
                 await bot.SendTextMessageAsync(pfd.target, "تله زنبیل\nمدیریت زنبیل خانواده");
             });
 
-            nfa.addRulePostFunction(TeleZanbilStates.StartRegFamily, (PostFunctionData pfd) =>
-            {
-            });
-
+            // پرسیدن نام خانواده
             nfa.addRulePostFunction(TeleZanbilStates.GetFamilyName, async (PostFunctionData pfd) =>
             {
-                await bot.SendTextMessageAsync(pfd.target, "لطفاً نام خانواده خود را وارد نمائید");
-            });
-
-            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContentForFather, async (PostFunctionData pfd) =>
-            {
-                // گرفتن زنبیل اصلی خانواده
-                var mainZanbil = tzdb.Zanbils.Where(z => z.Family.FamilyId == currentTZSessionData.family.FamilyId).First();
-
-                // گرفتن لیست آیتم های زنبیل اصلی
-                var zanbilItems = tzdb.ZanbilItems.Where(zi => zi.Zanbil.ZanbilId == mainZanbil.ZanbilId);
-
-                // ساخت لیست رشته شامل معرفی آیتم های زنبیل
-                string[] zanbilItemsTitle = new string[zanbilItems.Count()];
-                for (int i = 0; i < zanbilItems.Count(); i++)
-                {
-                    ZanbilItem zi = zanbilItems.ToArray<ZanbilItem>()[i];
-                    zanbilItemsTitle[i] = zi.ItemTitle + " (" + zi.ItemAmount + " " + zi.ItemUnit.Title + ")";
-                }
-
-                // ساخت کیبورد عمودی با استفاده از لیست آیتم های زنبیل
-                InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeVerticalKeyboard(zanbilItemsTitle);
-
-                // نمایش پیام و کیبورد لیست آیتم های زنبیل
-                await bot.SendTextMessageAsync(pfd.target, "زنبیل خانواده " + currentTZSessionData.family.FamilyName, replyMarkup: zanbilContentKeyboard);
+                await bot.SendTextMessageAsync(pfd.target, "لطفاً نام خانواده 👨‍👩‍👧‍👧 خود را وارد نمائید");
             });
 
             // ثبت خانواده
@@ -182,6 +161,51 @@ namespace ir.EmIT.TeleZanbil
                 tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = "شیر", ItemAmount = 2, Zanbil = mainZanbil, IsBought = false, ItemUnit = tzdb.Units.Where(u => u.Title == "لیتر").First(), BuyDate = DateTime.Now });
                 tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = "پنیر", ItemAmount = 1, Zanbil = mainZanbil, IsBought = false, ItemUnit = tzdb.Units.Where(u => u.Title == "بسته").First(), BuyDate = DateTime.Now });
                 tzdb.SaveChanges();*/
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContentForFather, async (PostFunctionData pfd) =>
+            {
+                // بدست آوردن محتوی زنبیل در قالب یک کیبورد
+                InlineKeyboardMarkup zanbilContentKeyboard = makeZanbilContentKeyboard();
+
+                // نمایش پیام و کیبورد لیست آیتم های زنبیل
+                Message keyboardMsg = await bot.SendTextMessageAsync(pfd.target, "زنبیل 🛍 خانواده " + currentTZSessionData.family.FamilyName, replyMarkup: zanbilContentKeyboard);
+                currentTZSessionData.lastMsgId = keyboardMsg.MessageId;
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.AcceptZanbilItem, TeleZanbilStates.ShowZanbilContentForFather, async (PostFunctionData pfd) =>
+            {
+                var mainZanbil = tzdb.Zanbils.Where(z => z.Family.FamilyId == currentTZSessionData.family.FamilyId).First();
+
+                int zanbilItemNo = Convert.ToInt32(pfd.m.Text);
+                var zanbilItems = tzdb.ZanbilItems.Where(zi => zi.Zanbil.ZanbilId == mainZanbil.ZanbilId && zi.IsBought == false);
+                if (zanbilItemNo > 0 && zanbilItemNo <= zanbilItems.Count())
+                {
+                    var zanbilItem = zanbilItems.ToArray()[zanbilItemNo - 1];
+                    zanbilItem.IsBought = true;
+                    zanbilItem.BuyDate = DateTime.Now;
+                    tzdb.SaveChanges();
+
+                    await bot.SendTextMessageAsync(pfd.target, "مورد " + zanbilItem.ItemAmount + " " + zanbilItem.ItemUnit.Title + " " + zanbilItem.ItemTitle + " با موفقیت خریده شد 💵");
+                }
+                else
+                    await bot.SendTextMessageAsync(pfd.target, "شماره آیتم ورودی نامعتبر ⛔️ می باشد");
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContentForFather, TeleZanbilStates.AcceptZanbilItem, async (PostFunctionData pfd) =>
+            {
+                // حذف کیبورد قبلی
+                //await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastMsgId);
+
+                // بدست آوردن محتوی زنبیل در قالب یک کیبورد
+                InlineKeyboardMarkup zanbilContentKeyboard = makeZanbilContentKeyboard();
+
+                // آپدیت کیبورد مربوط به پیام لیست آیتم های زنبیل
+                await bot.EditMessageReplyMarkupAsync(pfd.target, currentTZSessionData.lastMsgId, zanbilContentKeyboard);
+
+                // ساخت کیبورد جدید آیتم ها
+                //Message keyboardMsg = await bot.SendTextMessageAsync(pfd.target, "زنبیل 🛍 خانواده " + currentTZSessionData.family.FamilyName, replyMarkup: zanbilContentKeyboard);
+                //currentTZSessionData.lastMsgId = keyboardMsg.MessageId;
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowAdminMenu, TeleZanbilStates.CheckUserType, async (PostFunctionData pfd) =>
@@ -221,8 +245,13 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRule(TeleZanbilStates.GetMainCommand, 3, TeleZanbilStates.Login);
 
-            /*
-            AcceptZanbilItem
+            //int itemCount = tzdb.ZanbilItems
+            nfa.addRule(TeleZanbilStates.ShowZanbilContentForFather, 0, TeleZanbilStates.AddNewZanbilItem);
+            nfa.addRegexRule(TeleZanbilStates.ShowZanbilContentForFather, "[0-9]+", TeleZanbilStates.AcceptZanbilItem);
+
+            nfa.addRule(TeleZanbilStates.AcceptZanbilItem, TeleZanbilStates.ShowZanbilContentForFather);
+
+            /*            
             AddNewZanbilItem
             ShowInvalidCommand
             Login
@@ -247,5 +276,29 @@ namespace ir.EmIT.TeleZanbil
         {
             this.db = new TeleZanbilContext();
         }
+
+        private InlineKeyboardMarkup makeZanbilContentKeyboard()
+        {
+            // گرفتن زنبیل اصلی خانواده
+            var mainZanbil = tzdb.Zanbils.Where(z => z.Family.FamilyId == currentTZSessionData.family.FamilyId).First();
+
+            // گرفتن لیست آیتم های زنبیل اصلی
+            var zanbilItems = tzdb.ZanbilItems.Where(zi => zi.Zanbil.ZanbilId == mainZanbil.ZanbilId && zi.IsBought == false);
+
+            // ساخت لیست رشته شامل معرفی آیتم های زنبیل
+            string[] zanbilItemsTitle = new string[zanbilItems.Count() + 1];
+            for (int i = 0; i < zanbilItems.Count(); i++)
+            {
+                ZanbilItem zi = zanbilItems.ToArray<ZanbilItem>()[i];
+                zanbilItemsTitle[i] = zi.ItemTitle + " (" + zi.ItemAmount + " " + zi.ItemUnit.Title + ")";
+            }
+            zanbilItemsTitle[zanbilItems.Count()] = "🛒 افزودن مورد جدید";
+
+            // ساخت کیبورد عمودی با استفاده از لیست آیتم های زنبیل
+            InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeVerticalKeyboard(zanbilItemsTitle);
+
+            return zanbilContentKeyboard;
+        }
+
     }
 }
