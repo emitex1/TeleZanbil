@@ -4,7 +4,6 @@ using ir.EmIT.EmITBotNet;
 using Telegram.Bot.Types;
 using ir.EmIT.EmITBotNet.NFAUtility;
 using Telegram.Bot.Types.ReplyMarkups;
-using Telegram.Bot.Types.Enums;
 using System.Linq;
 using ir.EmIT.TeleZanbil.Models;
 
@@ -12,6 +11,7 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
+        #region کلاس های مورداستفاده
         class TeleZanbilStates : BotStates
         {
             public static BotState CheckUserType = new BotState(2, "بررسی نوع کاربر");
@@ -42,10 +42,12 @@ namespace ir.EmIT.TeleZanbil
             public Family family;
             public int lastMsgId;
         }
+        #endregion
 
         internal TeleZanbilSessionData currentTZSessionData;
         internal TeleZanbilContext tzdb;
 
+        #region توابع سیستمی
         public TeleZanbil()
         {
             tzdb = (TeleZanbilContext)db;
@@ -81,6 +83,48 @@ namespace ir.EmIT.TeleZanbil
         public override Message convertData(Message m)
         {
             return m;
+        }
+
+        public override void defineNFARules()
+        {
+            nfa.addRule(TeleZanbilStates.Start, "/start", TeleZanbilStates.CheckUserType);
+            nfa.addElseRule(TeleZanbilStates.Start, TeleZanbilStates.Start);
+
+            nfa.addRule(TeleZanbilStates.CheckUserType, "", TeleZanbilStates.GetMainCommand);
+            nfa.addRule(TeleZanbilStates.CheckUserType, "Admin", TeleZanbilStates.ShowAdminMenu);
+            nfa.addRule(TeleZanbilStates.CheckUserType, "Father", TeleZanbilStates.ShowZanbilContentForFather);
+            nfa.addRule(TeleZanbilStates.CheckUserType, "Normal", TeleZanbilStates.ShowZanbilContentForNormalUser);
+
+            nfa.addRule(TeleZanbilStates.GetMainCommand, 1, TeleZanbilStates.StartRegFamily);
+            nfa.addRule(TeleZanbilStates.GetMainCommand, 2, TeleZanbilStates.ShowAboutUs);
+            nfa.addRule(TeleZanbilStates.GetMainCommand, 3, TeleZanbilStates.Login);
+            nfa.addElseRule(TeleZanbilStates.GetMainCommand, TeleZanbilStates.ShowInvalidCommand);
+
+            nfa.addRule(TeleZanbilStates.ShowAboutUs, TeleZanbilStates.GetMainCommand);
+
+            nfa.addRule(TeleZanbilStates.ShowInvalidCommand, TeleZanbilStates.GetMainCommand);
+
+            nfa.addRule(TeleZanbilStates.StartRegFamily, TeleZanbilStates.GetFamilyName);
+
+            nfa.addRegexRule(TeleZanbilStates.GetFamilyName, ".*", TeleZanbilStates.RegisterFamily);
+
+            nfa.addRule(TeleZanbilStates.RegisterFamily, TeleZanbilStates.ShowZanbilContentForFather);
+
+            nfa.addRule(TeleZanbilStates.GetMainCommand, 3, TeleZanbilStates.Login);
+
+            //int itemCount = tzdb.ZanbilItems
+            nfa.addRule(TeleZanbilStates.ShowZanbilContentForFather, 0, TeleZanbilStates.AddNewZanbilItem);
+            nfa.addRegexRule(TeleZanbilStates.ShowZanbilContentForFather, "[0-9]+", TeleZanbilStates.AcceptZanbilItem);
+
+            nfa.addRule(TeleZanbilStates.AcceptZanbilItem, TeleZanbilStates.ShowZanbilContentForFather);
+
+            /*            
+            AddNewZanbilItem
+            ShowInvalidCommand
+            Login
+            ShowZanbilContentForNormalUser
+            ShowAdminMenu
+            */
         }
 
         public override void defineNFARulePostFunctions()
@@ -217,49 +261,7 @@ namespace ir.EmIT.TeleZanbil
             //{
             //});
         }
-
-        public override void defineNFARules()
-        {
-            nfa.addRule(TeleZanbilStates.Start, "/start", TeleZanbilStates.CheckUserType);
-            nfa.addElseRule(TeleZanbilStates.Start, TeleZanbilStates.Start);
-
-            nfa.addRule(TeleZanbilStates.CheckUserType, "", TeleZanbilStates.GetMainCommand);
-            nfa.addRule(TeleZanbilStates.CheckUserType, "Admin", TeleZanbilStates.ShowAdminMenu);
-            nfa.addRule(TeleZanbilStates.CheckUserType, "Father", TeleZanbilStates.ShowZanbilContentForFather);
-            nfa.addRule(TeleZanbilStates.CheckUserType, "Normal", TeleZanbilStates.ShowZanbilContentForNormalUser);
-
-            nfa.addRule(TeleZanbilStates.GetMainCommand, 1, TeleZanbilStates.StartRegFamily);
-            nfa.addRule(TeleZanbilStates.GetMainCommand, 2, TeleZanbilStates.ShowAboutUs);
-            nfa.addRule(TeleZanbilStates.GetMainCommand, 3, TeleZanbilStates.Login);
-            nfa.addElseRule(TeleZanbilStates.GetMainCommand, TeleZanbilStates.ShowInvalidCommand);
-
-            nfa.addRule(TeleZanbilStates.ShowAboutUs, TeleZanbilStates.GetMainCommand);
-
-            nfa.addRule(TeleZanbilStates.ShowInvalidCommand, TeleZanbilStates.GetMainCommand);
-
-            nfa.addRule(TeleZanbilStates.StartRegFamily, TeleZanbilStates.GetFamilyName);
-
-            nfa.addRegexRule(TeleZanbilStates.GetFamilyName, ".*", TeleZanbilStates.RegisterFamily);
-
-            nfa.addRule(TeleZanbilStates.RegisterFamily, TeleZanbilStates.ShowZanbilContentForFather);
-
-            nfa.addRule(TeleZanbilStates.GetMainCommand, 3, TeleZanbilStates.Login);
-
-            //int itemCount = tzdb.ZanbilItems
-            nfa.addRule(TeleZanbilStates.ShowZanbilContentForFather, 0, TeleZanbilStates.AddNewZanbilItem);
-            nfa.addRegexRule(TeleZanbilStates.ShowZanbilContentForFather, "[0-9]+", TeleZanbilStates.AcceptZanbilItem);
-
-            nfa.addRule(TeleZanbilStates.AcceptZanbilItem, TeleZanbilStates.ShowZanbilContentForFather);
-
-            /*            
-            AddNewZanbilItem
-            ShowInvalidCommand
-            Login
-            ShowZanbilContentForNormalUser
-            ShowAdminMenu
-            */
-        }
-
+        
         public override List<long> getAuthenticatedUsers()
         {
             return new List<long>();
@@ -277,6 +279,9 @@ namespace ir.EmIT.TeleZanbil
             this.db = new TeleZanbilContext();
         }
 
+        #endregion
+
+        #region توابع بیزینسی
         private InlineKeyboardMarkup makeZanbilContentKeyboard()
         {
             // گرفتن زنبیل اصلی خانواده
@@ -299,6 +304,6 @@ namespace ir.EmIT.TeleZanbil
 
             return zanbilContentKeyboard;
         }
-
+        #endregion
     }
 }
