@@ -6,6 +6,7 @@ using ir.EmIT.EmITBotNet.NFAUtility;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Linq;
 using ir.EmIT.TeleZanbil.Models;
+using System.IO;
 
 namespace ir.EmIT.TeleZanbil
 {
@@ -165,15 +166,18 @@ namespace ir.EmIT.TeleZanbil
                     "ثبت خانواده 👨‍👩‍👧‍👧 جدید",
                     "درباره 💡 تله زنبیل"
                 }, 2, false);
-                await bot.SendTextMessageAsync(pfd.target, "لطفاً انتخاب کنید", replyMarkup: mainKeyboard);
+                Message m2 = await bot.SendTextMessageAsync(pfd.target, "لطفاً انتخاب کنید", replyMarkup: mainKeyboard);
+                currentTZSessionData.lastMsgId = m2.MessageId;
             });
 
             // نمایش درباره ما
             nfa.addRulePostFunction(TeleZanbilStates.ShowAboutUs, async (PostFunctionData pfd) =>
             {
-                //todo نوشتن تابع حذف آخرین کیبورد
+                await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastMsgId);
+
                 //todo: تکمیل متن و عکس درباره ما
                 await bot.SendTextMessageAsync(pfd.target, "تله زنبیل\nمدیریت زنبیل خانواده");
+                await bot.SendPhotoAsync(pfd.target, new FileToSend("AboutPoster", new FileStream("Images\\AboutZanbil.png", FileMode.Open)));
             });
 
             // پرسیدن نام خانواده
