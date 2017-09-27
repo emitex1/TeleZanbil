@@ -200,7 +200,7 @@ namespace ir.EmIT.TeleZanbil
                 await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastMsgId);
 
                 //todo: تکمیل متن و عکس درباره ما
-                await bot.SendTextMessageAsync(pfd.target, "تله زنبیل\nمدیریت زنبیل خانواده");
+                await bot.SendTextMessageAsync(pfd.target, "💥 تله زنبیل 💥\nمدیریت زنبیل خانواده");
                 await bot.SendPhotoAsync(pfd.target, new FileToSend("AboutPoster", new FileStream("Images\\AboutZanbil.png", FileMode.Open)));
             });
 
@@ -247,7 +247,7 @@ namespace ir.EmIT.TeleZanbil
                 InlineKeyboardMarkup zanbilContentKeyboard = makeZanbilContentKeyboard();
 
                 // نمایش پیام و کیبورد لیست آیتم های زنبیل
-                Message keyboardMsg = await bot.SendTextMessageAsync(pfd.target, "زنبیل 🛍 خانواده " + currentTZSessionData.family.FamilyName, replyMarkup: zanbilContentKeyboard);
+                Message keyboardMsg = await bot.SendTextMessageAsync(pfd.target, "🛍 زنبیل خانواده «" + currentTZSessionData.family.FamilyName + "»", replyMarkup: zanbilContentKeyboard);
                 currentTZSessionData.lastMsgId = keyboardMsg.MessageId;
             });
 
@@ -388,7 +388,7 @@ namespace ir.EmIT.TeleZanbil
             }
             zanbilItemsTitle[zanbilItems.Count()] = new string[2];
             zanbilItemsTitle[zanbilItems.Count()][0] = "0";
-            zanbilItemsTitle[zanbilItems.Count()][1] = "🛒 افزودن مورد جدید";
+            zanbilItemsTitle[zanbilItems.Count()][1] = "✏️ افزودن مورد جدید";
 
             // ساخت کیبورد عمودی با استفاده از لیست آیتم های زنبیل
             InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeVerticalKeyboard(zanbilItemsTitle);
