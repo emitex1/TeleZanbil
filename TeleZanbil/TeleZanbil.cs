@@ -19,30 +19,33 @@ namespace ir.EmIT.TeleZanbil
             public static BotState GetMainCommand = new BotState(3, "گرفتن دستور اصلی");
             public static BotState ShowAboutUs = new BotState(4, "نمایش درباره ما");
             public static BotState StartRegFamily = new BotState(5, "شروع روال ثبت خانواده");
-            public static BotState GetFamilyName = new BotState(6, "دریافت اسم خانواده");
-            public static BotState RegisterFamily = new BotState(7, "ثبت خانواده");
-            public static BotState ShowZanbilContentForFather = new BotState(8, "نمایش محتوی زنبیل برای پدر");
-            public static BotState AcceptZanbilItem = new BotState(9, "تایید خرید آیتم زنبیل");
-            public static BotState AddNewZanbilItemForFather = new BotState(10, "اضافه کردن آیتم جدید به زنبیل برای پدر");
+            public static BotState Login = new BotState(6, "ورود اعضای خانواده");
+            public static BotState ShowInvalidCommand = new BotState(7, "نمایش ورودی نامعتبر");
 
-            public static BotState ShowInvalidCommand = new BotState(11, "نمایش ورودی نامعتبر");
-            public static BotState Login = new BotState(12, "ورود اعضای خانواده");
+            public static BotState GetFamilyName = new BotState(8, "دریافت اسم خانواده");
+            public static BotState RegisterFamily = new BotState(9, "ثبت خانواده");
 
-            public static BotState GetInputCode = new BotState(13, "دریافت کد ورود");
-            public static BotState CheckInputCode = new BotState(14, "بررسی کد ورود");
-            public static BotState FalseInputCode = new BotState(15, "غلط بودن کد ورود");
-            public static BotState ShowFalseInputCode = new BotState(16, "نمایش غلط بودن کد ورود");
-            public static BotState TrueInputCode = new BotState(17, "درست بودن کد ورود");
+            public static BotState GetInputCode = new BotState(10, "دریافت کد ورود");
+            public static BotState CheckInputCode = new BotState(11, "بررسی کد ورود");
+            public static BotState FalseInputCode = new BotState(12, "غلط بودن کد ورود");
+            public static BotState ShowFalseInputCode = new BotState(13, "نمایش غلط بودن کد ورود");
+            public static BotState TrueInputCode = new BotState(14, "درست بودن کد ورود");
 
-            public static BotState ShowZanbilContentForNormalUser = new BotState(18, "نمایش محتوی زنبیل برای کاربر عادی");
+            public static BotState ShowZanbilContent = new BotState(15, "نمایش محتوی زنبیل");
 
-            public static BotState AddNewZanbilItemForChild = new BotState(19, "اضافه کردن آیتم جدید به زنبیل برای فرزندان");
+            public static BotState AddNewZanbilItem = new BotState(16, "اضافه کردن آیتم جدید به زنبیل");
 
-            public static BotState ShowSuggestion = new BotState(20, "نمایش پیشنهادات کالا");
-            public static BotState GetZanbilItemName = new BotState(21, "پرسیدن اسم کالا برای افزودن به زنبیل");
-            public static BotState GetZanbilItemAmount = new BotState(22, "پرسیدن مقدار کالا برای افزودن به زنبیل");
-            public static BotState GetZanbilItemUnit = new BotState(23, "پرسیدن واحد کالا برای افزودن به زنبیل");
-            public static BotState SaveZanbilItem = new BotState(24, "افزودن کالا به زنبیل");
+            public static BotState ShowSuggestion = new BotState(17, "نمایش پیشنهادات کالا");
+            public static BotState GetZanbilItemName = new BotState(18, "پرسیدن اسم کالا برای افزودن به زنبیل");
+            public static BotState GetZanbilItemAmount = new BotState(19, "پرسیدن مقدار کالا برای افزودن به زنبیل");
+            public static BotState GetZanbilItemUnit = new BotState(20, "پرسیدن واحد کالا برای افزودن به زنبیل");
+            public static BotState SaveZanbilItem = new BotState(21, "افزودن کالا به زنبیل");
+
+            public static BotState CheckAcceptZanbilItemPermission = new BotState(22, "بررسی مجوز تایید خرید آیتم زنبیل براساس نقش کاربر جاری");
+            public static BotState AcceptZanbilItem = new BotState(23, "تایید خرید آیتم زنبیل");
+            public static BotState NotHaveAcceptPermission = new BotState(24, "عدم داشتن مجوز برای تایید خرید آیتم زنبیل");
+
+            public static BotState RefreshZanbil = new BotState(25, "تازه سازی زنبیل");
 
             public static BotState ShowAdminMenu = new BotState(30, "نمایش منوی مدیر سیستم");
         }
@@ -55,7 +58,11 @@ namespace ir.EmIT.TeleZanbil
             }
 
             public Family family;
+            public string userRole;
+
             public int lastMsgId;
+
+            public int zanbilItemNo;
 
             public string zanbilItemName;
             public int zanbilItemAmount;
@@ -111,8 +118,8 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRule(TeleZanbilStates.CheckUserType, "", TeleZanbilStates.GetMainCommand);
             nfa.addRule(TeleZanbilStates.CheckUserType, "Admin", TeleZanbilStates.ShowAdminMenu);
-            nfa.addRule(TeleZanbilStates.CheckUserType, "Father", TeleZanbilStates.ShowZanbilContentForFather);
-            nfa.addRule(TeleZanbilStates.CheckUserType, "Normal", TeleZanbilStates.ShowZanbilContentForNormalUser);
+            nfa.addRule(TeleZanbilStates.CheckUserType, "Father", TeleZanbilStates.ShowZanbilContent);
+            nfa.addRule(TeleZanbilStates.CheckUserType, "Normal", TeleZanbilStates.ShowZanbilContent);
 
             nfa.addRule(TeleZanbilStates.GetMainCommand, 1, TeleZanbilStates.StartRegFamily);
             nfa.addRule(TeleZanbilStates.GetMainCommand, 2, TeleZanbilStates.ShowAboutUs);
@@ -123,31 +130,40 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRule(TeleZanbilStates.ShowInvalidCommand, TeleZanbilStates.GetMainCommand);
 
+
             nfa.addRule(TeleZanbilStates.StartRegFamily, TeleZanbilStates.GetFamilyName);
-
             nfa.addRegexRule(TeleZanbilStates.GetFamilyName, ".*", TeleZanbilStates.RegisterFamily);
+            nfa.addRule(TeleZanbilStates.RegisterFamily, TeleZanbilStates.ShowZanbilContent);
 
-            nfa.addRule(TeleZanbilStates.RegisterFamily, TeleZanbilStates.ShowZanbilContentForFather);
 
-            nfa.addRule(TeleZanbilStates.GetMainCommand, 3, TeleZanbilStates.Login);
+            nfa.addRule(TeleZanbilStates.Login, "CANCEL_LOGIN_CMD_EMIT", TeleZanbilStates.GetMainCommand);
+            nfa.addRegexRule(TeleZanbilStates.Login, ".+", TeleZanbilStates.GetInputCode);
+            nfa.addRule(TeleZanbilStates.GetInputCode, TeleZanbilStates.CheckInputCode);
+            nfa.addRule(TeleZanbilStates.CheckInputCode, "0", TeleZanbilStates.FalseInputCode);
+            nfa.addRule(TeleZanbilStates.CheckInputCode, "1", TeleZanbilStates.TrueInputCode);
+            nfa.addRule(TeleZanbilStates.FalseInputCode, TeleZanbilStates.ShowFalseInputCode);
+            nfa.addRule(TeleZanbilStates.ShowFalseInputCode, TeleZanbilStates.Login);
+            nfa.addRule(TeleZanbilStates.TrueInputCode, TeleZanbilStates.ShowZanbilContent);
 
-            //int itemCount = tzdb.ZanbilItems
-            nfa.addRule(TeleZanbilStates.ShowZanbilContentForFather, 0, TeleZanbilStates.AddNewZanbilItemForFather);
-            nfa.addRegexRule(TeleZanbilStates.ShowZanbilContentForFather, "[0-9]+", TeleZanbilStates.AcceptZanbilItem);
 
-            nfa.addRule(TeleZanbilStates.AcceptZanbilItem, TeleZanbilStates.ShowZanbilContentForFather);
+            nfa.addRule(TeleZanbilStates.ShowZanbilContent, -1, TeleZanbilStates.RefreshZanbil);
+            nfa.addRule(TeleZanbilStates.ShowZanbilContent, 0, TeleZanbilStates.AddNewZanbilItem);
+            nfa.addRegexRule(TeleZanbilStates.ShowZanbilContent, "[0-9]+", TeleZanbilStates.CheckAcceptZanbilItemPermission);
 
-            nfa.addRule(TeleZanbilStates.AddNewZanbilItemForFather, TeleZanbilStates.GetZanbilItemName);
+            //todo: سه مرحله دریافت اطلاعات هرکدام تقسیم شوند به دو مرحله نمایش پیام و دریافت مقدار
+            nfa.addRule(TeleZanbilStates.AddNewZanbilItem, TeleZanbilStates.GetZanbilItemName);
             nfa.addRegexRule(TeleZanbilStates.GetZanbilItemName, ".*", TeleZanbilStates.GetZanbilItemAmount);
             nfa.addRegexRule(TeleZanbilStates.GetZanbilItemAmount, "[0-9]+", TeleZanbilStates.GetZanbilItemUnit);
             nfa.addRegexRule(TeleZanbilStates.GetZanbilItemUnit, ".+", TeleZanbilStates.SaveZanbilItem);
+            nfa.addRule(TeleZanbilStates.SaveZanbilItem, TeleZanbilStates.ShowZanbilContent);
 
-            nfa.addRule(TeleZanbilStates.SaveZanbilItem, TeleZanbilStates.ShowZanbilContentForFather);
 
-            /*            
-            ShowInvalidCommand
-            Login
-            ShowZanbilContentForNormalUser
+            nfa.addRule(TeleZanbilStates.CheckAcceptZanbilItemPermission, "Father", TeleZanbilStates.AcceptZanbilItem);
+            nfa.addElseRule(TeleZanbilStates.CheckAcceptZanbilItemPermission, TeleZanbilStates.NotHaveAcceptPermission);
+            nfa.addRule(TeleZanbilStates.AcceptZanbilItem, TeleZanbilStates.ShowZanbilContent);
+            nfa.addRule(TeleZanbilStates.NotHaveAcceptPermission, TeleZanbilStates.ShowZanbilContent);
+
+            /*
             ShowAdminMenu
             */
         }
@@ -156,6 +172,7 @@ namespace ir.EmIT.TeleZanbil
         {
             nfa.addRulePostFunction(TeleZanbilStates.Start, TeleZanbilStates.Start, async (PostFunctionData pfd) =>
             {
+                //todo: بررسی وجود کد ورود در کامند start
                 await bot.SendTextMessageAsync(pfd.target, "لطفاً برای شروع 🏃 از دستور زیر استفاده کنید :\n/start");
             });
 
@@ -171,6 +188,8 @@ namespace ir.EmIT.TeleZanbil
 
                     // گرفتن نقش کاربر جاری (ذخیره شده در دیتابیس)
                     roleName = user.UserRole.RoleName;
+
+                    currentTZSessionData.userRole = roleName;
 
                     // ذخیره کردن اطلاعات خانواده کاربر جاری در داده های جلسه، در صورتی که شخص ورودی پدر باشد
                     if (roleName == "Father")
@@ -214,7 +233,6 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRulePostFunction(TeleZanbilStates.RegisterFamily, (PostFunctionData pfd) =>
             {
                 // گرفتن اسم خانواده از ورودی کاربر
-                //currentTZSessionData.familyName = pfd.action;
                 string familyName = pfd.action;
 
                 //todo: بررسی تکراری نبودن خانواده
@@ -228,14 +246,9 @@ namespace ir.EmIT.TeleZanbil
                 tzdb.Users.Add(new Models.User() { UserRole = fatherRole, TelegramUserID = pfd.m.Chat.Id, UserFamily = family });
                 var mainZanbil = tzdb.Zanbils.Add(new Zanbil() { ZanbilName = "زنبیل اصلی خانواده " + familyName, Family = family });
                 tzdb.SaveChanges();
-
-                /*tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = "سیب", ItemAmount = 5, Zanbil = mainZanbil, IsBought = false, ItemUnit = tzdb.Units.Where(u => u.Title == "عدد").First(), BuyDate = DateTime.Now });
-                tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = "شیر", ItemAmount = 2, Zanbil = mainZanbil, IsBought = false, ItemUnit = tzdb.Units.Where(u => u.Title == "لیتر").First(), BuyDate = DateTime.Now });
-                tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = "پنیر", ItemAmount = 1, Zanbil = mainZanbil, IsBought = false, ItemUnit = tzdb.Units.Where(u => u.Title == "بسته").First(), BuyDate = DateTime.Now });
-                tzdb.SaveChanges();*/
             });
 
-            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContentForFather, async (PostFunctionData pfd) =>
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, async (PostFunctionData pfd) =>
             {
                 if (currentTZSessionData.lastMsgId != 0)
                 {
@@ -251,15 +264,20 @@ namespace ir.EmIT.TeleZanbil
                 currentTZSessionData.lastMsgId = keyboardMsg.MessageId;
             });
 
-            nfa.addRulePostFunction(TeleZanbilStates.AcceptZanbilItem, TeleZanbilStates.ShowZanbilContentForFather, async (PostFunctionData pfd) =>
+            nfa.addRulePostFunction(TeleZanbilStates.CheckAcceptZanbilItemPermission, (PostFunctionData pfd) =>
+            {
+                currentTZSessionData.zanbilItemNo = Convert.ToInt32(pfd.m.Text);
+                actUsingCustomAction(pfd.m, currentTZSessionData.userRole);
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.AcceptZanbilItem, TeleZanbilStates.CheckAcceptZanbilItemPermission, async (PostFunctionData pfd) =>
             {
                 var mainZanbil = getMainZanbil();
 
-                int zanbilItemNo = Convert.ToInt32(pfd.m.Text);
                 var zanbilItems = tzdb.ZanbilItems.Where(zi => zi.Zanbil.ZanbilId == mainZanbil.ZanbilId && zi.IsBought == false);
-                if (zanbilItemNo > 0 && zanbilItemNo <= zanbilItems.Count())
+                if (currentTZSessionData.zanbilItemNo > 0 && currentTZSessionData.zanbilItemNo <= zanbilItems.Count())
                 {
-                    var zanbilItem = zanbilItems.ToArray()[zanbilItemNo - 1];
+                    var zanbilItem = zanbilItems.ToArray()[currentTZSessionData.zanbilItemNo - 1];
                     zanbilItem.IsBought = true;
                     zanbilItem.BuyDate = DateTime.Now;
                     tzdb.SaveChanges();
@@ -376,19 +394,27 @@ namespace ir.EmIT.TeleZanbil
 
             // گرفتن لیست آیتم های زنبیل اصلی
             var zanbilItems = tzdb.ZanbilItems.Where(zi => zi.Zanbil.ZanbilId == mainZanbil.ZanbilId && zi.IsBought == false);
+            int ziCount = zanbilItems.Count();
 
             // ساخت لیست رشته شامل معرفی آیتم های زنبیل
-            string[][] zanbilItemsTitle = new string[zanbilItems.Count() + 1][];
-            for (int i = 0; i < zanbilItems.Count(); i++)
+            string[][] zanbilItemsTitle = new string[ziCount + 2][];
+            for (int i = 0; i < ziCount; i++)
             {
                 zanbilItemsTitle[i] = new string[2];
                 ZanbilItem zi = zanbilItems.ToArray<ZanbilItem>()[i];
                 zanbilItemsTitle[i][0] = (i + 1).ToString();
                 zanbilItemsTitle[i][1] = zi.ItemTitle + " (" + zi.ItemAmount + " " + zi.ItemUnit.Title + ")";
             }
-            zanbilItemsTitle[zanbilItems.Count()] = new string[2];
-            zanbilItemsTitle[zanbilItems.Count()][0] = "0";
-            zanbilItemsTitle[zanbilItems.Count()][1] = "✏️ افزودن مورد جدید";
+
+            // دکمه افزودن کالای جدید
+            zanbilItemsTitle[ziCount] = new string[2];
+            zanbilItemsTitle[ziCount][0] = "0";
+            zanbilItemsTitle[ziCount][1] = "✏️ افزودن مورد جدید";
+
+            // دکمه رفرش
+            zanbilItemsTitle[ziCount + 1] = new string[2];
+            zanbilItemsTitle[ziCount + 1][0] = "-1";
+            zanbilItemsTitle[ziCount + 1][1] = "♻️💥 رفرش زنبیل";
 
             // ساخت کیبورد عمودی با استفاده از لیست آیتم های زنبیل
             InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeVerticalKeyboard(zanbilItemsTitle);
