@@ -163,6 +163,8 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, 0, TeleZanbilStates.AddNewZanbilItem);
             nfa.addRegexRule(TeleZanbilStates.ShowZanbilContent, "[0-9]+", TeleZanbilStates.CheckAcceptZanbilItemPermission);
 
+            nfa.addRule(TeleZanbilStates.RefreshZanbil, TeleZanbilStates.ShowZanbilContent);
+
             //todo: سه مرحله دریافت اطلاعات هرکدام تقسیم شوند به دو مرحله نمایش پیام و دریافت مقدار
             nfa.addRule(TeleZanbilStates.AddNewZanbilItem, TeleZanbilStates.GetZanbilItemName);
             nfa.addRegexRule(TeleZanbilStates.GetZanbilItemName, ".*", TeleZanbilStates.GetZanbilItemAmount);
