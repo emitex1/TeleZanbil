@@ -13,13 +13,18 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
-        //todo: امکان دعوت از دیگران
+        //todo: امکان دعوت از دیگران با ارسال کد
         //todo: نمایش سابقه خرید
-        //todo: نمایش کد ورود برای اعضای خانواده
-        //todo: بازسازی کد ورود
         //todo: تحلیل پنل مدیریتی
         //todo: اگر کاربر معمولی روی کالایی کلیک کند رفرش می شود
         //todo: نمایش پیام خوش آمدگویی پس از لاگین
+        //todo: امکان خروج از سیستم
+        //todo: متن درباره تله زنبیل کپشن باشد
+        //todo: نمایش پیام مبنی بر خالی بودن زنبیل
+        //todo: دکمه بازگشت از بخش ورود به سیستم
+        //todo: همیشه پس از کلیک روی دکمه ها، آن صفحه کلید حذف شده و لاگ آن بماند
+        //todo: تست همزمان دو کاربر
+        //todo: کاربر معمولی دکمه های کد ورود را نبیند
 
         #region کلاس های مورداستفاده
         class TeleZanbilStates : BotStates
@@ -303,6 +308,16 @@ namespace ir.EmIT.TeleZanbil
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.CheckUserType, async (PostFunctionData pfd) =>
+            {
+                await showZanbilContentAsync(pfd);
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.RegisterFamily, async (PostFunctionData pfd) =>
+            {
+                await showZanbilContentAsync(pfd);
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.TrueInputCode, async (PostFunctionData pfd) =>
             {
                 await showZanbilContentAsync(pfd);
             });
