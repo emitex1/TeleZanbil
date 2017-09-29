@@ -25,6 +25,20 @@ namespace ir.EmIT.TeleZanbil
         //todo: همیشه پس از کلیک روی دکمه ها، آن صفحه کلید حذف شده و لاگ آن بماند
         //todo: تست همزمان دو کاربر
         //todo: کاربر معمولی دکمه های کد ورود را نبیند
+        //todo: گذاشتن دکمه کانفیگ
+        //todo: دکمه راهنما
+        //todo: دکمه ها آیکونی
+        //todo: در اولین ورود به اپ راهنما نمایش داده شود
+        //todo: انتقال دکمه ها به منوی اصلی جدا از لیست زنبیل
+        //todo: کانفیگ تغییر زبان به کرمونی
+        //todo: دیدن لیست خانواده
+        //todo: امکان حذف اعضای خانواده
+        //todo: خروج اعضا به راحتی با حذف کاربر
+        //todo: خروج پدر هم با حذف منطقی همه چیز باشد
+        //todo: حذف منطقی
+        //todo: کاربر ثبت کننده
+        //todo: کانفیگ دکمه ها این.لاین یا در باکس اصلی
+        //todo: درباره ما در زمان پس از لاگین
 
         #region کلاس های مورداستفاده
         class TeleZanbilStates : BotStates
@@ -529,9 +543,15 @@ namespace ir.EmIT.TeleZanbil
             var zanbilItems = tzdb.ZanbilItems.Where(zi => zi.Zanbil.ZanbilId == mainZanbil.ZanbilId && zi.IsBought == false);
             int ziCount = zanbilItems.Count();
 
+            string[][][] zanbilItemsTitle;
+            if (currentTZSessionData.userRole == "Father")
+                zanbilItemsTitle = new string[ziCount + 3][][];
+            else //else if (currentTZSessionData.userRole == "Normal")
+                zanbilItemsTitle = new string[ziCount + 2][][];
+
             // ساخت لیست رشته شامل معرفی آیتم های زنبیل
-            string[][][] zanbilItemsTitle = new string[ziCount + 3][][];
-            for (int i = 0; i < ziCount; i++)
+            int i;
+            for (i = 0; i < ziCount; i++)
             {
                 zanbilItemsTitle[i] = new string[1][];
                 zanbilItemsTitle[i][0] = new string[2];
@@ -540,41 +560,47 @@ namespace ir.EmIT.TeleZanbil
                 zanbilItemsTitle[i][0][0] = zi.ItemTitle + " (" + zi.ItemAmount + " " + zi.ItemUnit.Title + ")";
             }
 
-            zanbilItemsTitle[ziCount] = new string[2][];
-            zanbilItemsTitle[ziCount][0] = new string[2];
-            zanbilItemsTitle[ziCount][1] = new string[2];
+            i = ziCount;
+            zanbilItemsTitle[i] = new string[2][];
+            zanbilItemsTitle[i][0] = new string[2];
+            zanbilItemsTitle[i][1] = new string[2];
 
             // دکمه افزودن کالای جدید
-            zanbilItemsTitle[ziCount][0][1] = "add";
-            zanbilItemsTitle[ziCount][0][0] = "✏️ افزودن مورد جدید";
+            zanbilItemsTitle[i][0][1] = "add";
+            zanbilItemsTitle[i][0][0] = "✏️ افزودن مورد جدید";
 
             // دکمه رفرش
-            zanbilItemsTitle[ziCount][1][1] = "refresh";
-            zanbilItemsTitle[ziCount][1][0] = "💥 رفرش زنبیل";
+            zanbilItemsTitle[i][1][1] = "refresh";
+            zanbilItemsTitle[i][1][0] = "💥 رفرش زنبیل";
 
-            zanbilItemsTitle[ziCount + 1] = new string[2][];
-            zanbilItemsTitle[ziCount + 1][0] = new string[2];
-            zanbilItemsTitle[ziCount + 1][1] = new string[2];
+            if (currentTZSessionData.userRole == "Father")
+            {
+                i++;
+                zanbilItemsTitle[i] = new string[2][];
+                zanbilItemsTitle[i][0] = new string[2];
+                zanbilItemsTitle[i][1] = new string[2];
 
-            // دکمه نمایش کد دعوت
-            zanbilItemsTitle[ziCount + 1][0][1] = "inviteCode";
-            zanbilItemsTitle[ziCount + 1][0][0] = "💥 نمایش کد دعوت";
+                // دکمه نمایش کد دعوت
+                zanbilItemsTitle[i][0][1] = "inviteCode";
+                zanbilItemsTitle[i][0][0] = "💥 نمایش کد دعوت";
 
-            // دکمه بازسازی کد دعوت
-            zanbilItemsTitle[ziCount + 1][1][1] = "regenerateInviteCode";
-            zanbilItemsTitle[ziCount + 1][1][0] = "💥 بازسازی کد دعوت";
+                // دکمه بازسازی کد دعوت
+                zanbilItemsTitle[i][1][1] = "regenerateInviteCode";
+                zanbilItemsTitle[i][1][0] = "💥 بازسازی کد دعوت";
+            }
 
-            zanbilItemsTitle[ziCount + 2] = new string[2][];
-            zanbilItemsTitle[ziCount + 2][0] = new string[2];
-            zanbilItemsTitle[ziCount + 2][1] = new string[2];
+            i++;
+            zanbilItemsTitle[i] = new string[2][];
+            zanbilItemsTitle[i][0] = new string[2];
+            zanbilItemsTitle[i][1] = new string[2];
 
             // دکمه نمایش سابقه خرید
-            zanbilItemsTitle[ziCount + 2][0][1] = "history";
-            zanbilItemsTitle[ziCount + 2][0][0] = "💥 سابقه خرید";
+            zanbilItemsTitle[i][0][1] = "history";
+            zanbilItemsTitle[i][0][0] = "💥 سابقه خرید";
 
             // دکمه خروج
-            zanbilItemsTitle[ziCount + 2][1][1] = "logout";
-            zanbilItemsTitle[ziCount + 2][1][0] = "💥 خروج";
+            zanbilItemsTitle[i][1][1] = "logout";
+            zanbilItemsTitle[i][1][0] = "💥 خروج";
 
             // ساخت کیبورد عمودی با استفاده از لیست آیتم های زنبیل
             //InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeVerticalKeyboard(zanbilItemsTitle);
