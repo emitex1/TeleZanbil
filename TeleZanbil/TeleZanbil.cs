@@ -18,6 +18,7 @@ namespace ir.EmIT.TeleZanbil
         //todo: بازسازی کد ورود
         //todo: تحلیل پنل مدیریتی
         //todo: اگر کاربر معمولی روی کالایی کلیک کند رفرش می شود
+        //todo: نمایش پیام خوش آمدگویی پس از لاگین
 
         #region کلاس های مورداستفاده
         class TeleZanbilStates : BotStates
