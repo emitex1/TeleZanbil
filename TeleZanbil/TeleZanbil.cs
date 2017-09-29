@@ -34,8 +34,6 @@ namespace ir.EmIT.TeleZanbil
         //todo: امکان حذف اعضای خانواده
         //todo: خروج اعضا به راحتی با حذف کاربر
         //todo: خروج پدر هم با حذف منطقی همه چیز باشد
-        //todo: حذف منطقی
-        //todo: کاربر ثبت کننده
         //todo: کانفیگ دکمه ها این.لاین یا در باکس اصلی
         //todo: درباره ما در زمان پس از لاگین
 
@@ -229,7 +227,7 @@ namespace ir.EmIT.TeleZanbil
                 string roleName = "Unauthorized";
 
                 // بررسی اینکه آیا کاربری متناظر کاربر جاری بات در دیتابیس وجود دارد یا نه؟
-                var userList = tzdb.Users.Where(u => u.TelegramUserID == pfd.m.Chat.Id);
+                var userList = tzdb.Users.Where(u => u.TelegramUserID == pfd.m.Chat.Id && u.IsDeleted == false);
                 if (userList.Count() > 0)
                 {
                     var user = userList.First();
@@ -299,13 +297,13 @@ namespace ir.EmIT.TeleZanbil
 
                 //todo: بررسی تکراری نبودن خانواده
                 //ثبت خانواده
-                var family = tzdb.Families.Add(new Family() { FamilyName = familyName , InviteCode = getNewInviteCode() });
+                var family = tzdb.Families.Add(new Family() { FamilyName = familyName , InviteCode = getNewInviteCode(), IsDeleted = false });
                 currentTZSessionData.family = family;
                 tzdb.SaveChanges();
 
                 // ثبت کاربر و زنبیل اصلی مربوط به این خانواده
                 var fatherRole = tzdb.Roles.Where(r => r.RoleName == "Father").First();
-                tzdb.Users.Add(new Models.User() { UserRole = fatherRole, TelegramUserID = pfd.m.Chat.Id, UserFamily = family });
+                tzdb.Users.Add(new Models.User() { UserRole = fatherRole, TelegramUserID = pfd.m.Chat.Id, UserFamily = family, IsDeleted = false });
                 var mainZanbil = tzdb.Zanbils.Add(new Zanbil() { ZanbilName = "زنبیل اصلی خانواده " + familyName, Family = family });
                 tzdb.SaveChanges();
             });
@@ -423,8 +421,9 @@ namespace ir.EmIT.TeleZanbil
                     unit = tzdb.Units.Add(new Unit() { Title = currentTZSessionData.zanbilItemUnit });
                 else
                     unit = foundUnits.First();
+                int userID = tzdb.Users.Where(u => u.TelegramUserID == currentTZSessionData.telegramUserID).First().UserId;
                 // ثبت آیتم در زنبیل
-                tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = currentTZSessionData.zanbilItemName, ItemAmount = currentTZSessionData.zanbilItemAmount, Zanbil = mainZanbil, IsBought = false, ItemUnit = unit, BuyDate = DateTime.Now });
+                tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = currentTZSessionData.zanbilItemName, ItemAmount = currentTZSessionData.zanbilItemAmount, Zanbil = mainZanbil, IsBought = false, ItemUnit = unit, BuyDate = DateTime.Now, CreatorUserID = userID });
                 tzdb.SaveChanges();
 
                 //todo: حذف همه پیام های در حین افزودن کالا به زنبیل
@@ -448,7 +447,7 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.CheckInputCode, (PostFunctionData pfd) =>
             {
-                var families = tzdb.Families.Where(f => f.InviteCode.Equals(currentTZSessionData.inputCode));
+                var families = tzdb.Families.Where(f => f.InviteCode.Equals(currentTZSessionData.inputCode) && f.IsDeleted == false);
                 if(families.Count() == 0)
                 {
                     actUsingCustomAction(pfd.m, "0");
@@ -456,7 +455,7 @@ namespace ir.EmIT.TeleZanbil
                 else
                 {
                     var normalRole = tzdb.Roles.Where(r => r.RoleName == "Normal").First();
-                    tzdb.Users.Add(new Models.User() { UserFamily = families.First(), TelegramUserID = pfd.m.From.Id, UserRole = normalRole });
+                    tzdb.Users.Add(new Models.User() { UserFamily = families.First(), TelegramUserID = pfd.m.From.Id, UserRole = normalRole, IsDeleted = false });
                     tzdb.SaveChanges();
 
                     currentTZSessionData.family = families.First();

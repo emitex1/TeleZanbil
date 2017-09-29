@@ -11,5 +11,6 @@ namespace ir.EmIT.TeleZanbil.Models
         public virtual Zanbil Zanbil { get; set; }
         public bool IsBought { get; set; }
         public DateTime BuyDate { get; set; }
+        public int CreatorUserID { get; set; }
     }
 }

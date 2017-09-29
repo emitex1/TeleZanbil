@@ -7,7 +7,7 @@ namespace ir.EmIT.TeleZanbil.Models
         public int UserId { get; set; }
         public long TelegramUserID { get; set; }
         public virtual Role UserRole { get; set; }
-
         public virtual Family UserFamily { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }
