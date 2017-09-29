@@ -495,9 +495,10 @@ namespace ir.EmIT.TeleZanbil
         {
             //todo: بررسی تکراری نبودن کد دعوت
             string str = "";
+            Random rnd = new Random();
             for (int i = 0; i < 6; i++)
             {
-                str += new Random().Next(1, 9).ToString();
+                str += rnd.Next(1, 9).ToString();
             }
             return str;
         }
