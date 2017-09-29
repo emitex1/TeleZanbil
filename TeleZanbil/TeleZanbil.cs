@@ -12,6 +12,13 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
+        //todo: امکان دعوت از دیگران
+        //todo: نمایش سابقه خرید
+        //todo: نمایش کد ورود برای اعضای خانواده
+        //todo: بازسازی کد ورود
+        //todo: تحلیل پنل مدیریتی
+        //todo: اگر کاربر معمولی روی کالایی کلیک کند رفرش می شود
+
         #region کلاس های مورداستفاده
         class TeleZanbilStates : BotStates
         {
@@ -67,6 +74,8 @@ namespace ir.EmIT.TeleZanbil
             public string zanbilItemName;
             public int zanbilItemAmount;
             public string zanbilItemUnit;
+
+            public string inputCode;
         }
         #endregion
 
@@ -91,9 +100,12 @@ namespace ir.EmIT.TeleZanbil
             {
                 tzdb.Units.Add(new Unit() { Title = "عدد" });
                 tzdb.Units.Add(new Unit() { Title = "بسته" });
-                tzdb.Units.Add(new Unit() { Title = "کیلوگرم" });
+                tzdb.Units.Add(new Unit() { Title = "قالب" });
+                tzdb.Units.Add(new Unit() { Title = "تا" });
+                tzdb.Units.Add(new Unit() { Title = "کیلو" });
                 tzdb.Units.Add(new Unit() { Title = "گرم" });
                 tzdb.Units.Add(new Unit() { Title = "میلی گرم" });
+                tzdb.Units.Add(new Unit() { Title = "مثقال" });
                 tzdb.Units.Add(new Unit() { Title = "متر" });
                 tzdb.Units.Add(new Unit() { Title = "سانتی متر" });
                 tzdb.Units.Add(new Unit() { Title = "میلی متر" });
@@ -114,16 +126,17 @@ namespace ir.EmIT.TeleZanbil
         public override void defineNFARules()
         {
             nfa.addRule(TeleZanbilStates.Start, "/start", TeleZanbilStates.CheckUserType);
+            //nfa.addRule(TeleZanbilStates.Start, "Normal", TeleZanbilStates.ShowZanbilContent);
             nfa.addElseRule(TeleZanbilStates.Start, TeleZanbilStates.Start);
 
-            nfa.addRule(TeleZanbilStates.CheckUserType, "", TeleZanbilStates.GetMainCommand);
+            nfa.addRule(TeleZanbilStates.CheckUserType, "Unauthorized", TeleZanbilStates.GetMainCommand);
             nfa.addRule(TeleZanbilStates.CheckUserType, "Admin", TeleZanbilStates.ShowAdminMenu);
             nfa.addRule(TeleZanbilStates.CheckUserType, "Father", TeleZanbilStates.ShowZanbilContent);
             nfa.addRule(TeleZanbilStates.CheckUserType, "Normal", TeleZanbilStates.ShowZanbilContent);
 
             nfa.addRule(TeleZanbilStates.GetMainCommand, 1, TeleZanbilStates.StartRegFamily);
-            nfa.addRule(TeleZanbilStates.GetMainCommand, 2, TeleZanbilStates.ShowAboutUs);
-            nfa.addRule(TeleZanbilStates.GetMainCommand, 3, TeleZanbilStates.Login);
+            nfa.addRule(TeleZanbilStates.GetMainCommand, 2, TeleZanbilStates.Login);
+            nfa.addRule(TeleZanbilStates.GetMainCommand, 3, TeleZanbilStates.ShowAboutUs);
             nfa.addElseRule(TeleZanbilStates.GetMainCommand, TeleZanbilStates.ShowInvalidCommand);
 
             nfa.addRule(TeleZanbilStates.ShowAboutUs, TeleZanbilStates.GetMainCommand);
@@ -178,7 +191,7 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.CheckUserType, TeleZanbilStates.Start, (PostFunctionData pfd) =>
             {
-                string roleName = "";
+                string roleName = "Unauthorized";
 
                 // بررسی اینکه آیا کاربری متناظر کاربر جاری بات در دیتابیس وجود دارد یا نه؟
                 var userList = tzdb.Users.Where(u => u.TelegramUserID == pfd.m.Chat.Id);
@@ -190,9 +203,15 @@ namespace ir.EmIT.TeleZanbil
                     roleName = user.UserRole.RoleName;
 
                     currentTZSessionData.userRole = roleName;
+                    currentTZSessionData.telegramUserID = user.TelegramUserID;
 
                     // ذخیره کردن اطلاعات خانواده کاربر جاری در داده های جلسه، در صورتی که شخص ورودی پدر باشد
                     if (roleName == "Father")
+                    {
+                        int familyID = user.UserFamily.FamilyId;
+                        currentTZSessionData.family = tzdb.Families.Where(f => f.FamilyId == familyID).First();
+                    }
+                    else if (roleName == "Normal")
                     {
                         int familyID = user.UserFamily.FamilyId;
                         currentTZSessionData.family = tzdb.Families.Where(f => f.FamilyId == familyID).First();
@@ -207,6 +226,7 @@ namespace ir.EmIT.TeleZanbil
             {
                 InlineKeyboardMarkup mainKeyboard = KeyboardGenerator.makeKeyboard(new string[] {
                     "ثبت خانواده 👨‍👩‍👧‍👧 جدید",
+                    "پیوستن به خانواده 🚶",
                     "درباره 💡 تله زنبیل"
                 }, 2, false);
                 Message m2 = await bot.SendTextMessageAsync(pfd.target, "لطفاً انتخاب کنید", replyMarkup: mainKeyboard);
@@ -237,7 +257,7 @@ namespace ir.EmIT.TeleZanbil
 
                 //todo: بررسی تکراری نبودن خانواده
                 //ثبت خانواده
-                var family = tzdb.Families.Add(new Family() { FamilyName = familyName });
+                var family = tzdb.Families.Add(new Family() { FamilyName = familyName , InviteCode = getNewInviteCode() });
                 currentTZSessionData.family = family;
                 tzdb.SaveChanges();
 
@@ -315,12 +335,14 @@ namespace ir.EmIT.TeleZanbil
                 currentTZSessionData.zanbilItemName = pfd.action;
 
                 // نمایش لیست و درخواست ورود مقدار کالای درخواستی
+                //todo: کیبورد شامل ربع و نیم و ضرایب 10 هم باشد
                 InlineKeyboardMarkup numberKeyboard = KeyboardGenerator.makeNumberMatrixKeyboard(1, 9, 3);
                 await bot.SendTextMessageAsync(pfd.target, "لطفاً مقدار کالای درخواستی 🛒 را انتخاب کنید یا در صورت نیاز مقدار دقیق آن را وارد نمائید", replyMarkup: numberKeyboard);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.GetZanbilItemUnit, async (PostFunctionData pfd) =>
             {
+                //todo: امکان ثبت اعداد اعشار
                 // گرفتن مقدار کالای درخواستی از مرحله قبل
                 currentTZSessionData.zanbilItemAmount = Convert.ToInt32(pfd.action);
 
@@ -330,6 +352,7 @@ namespace ir.EmIT.TeleZanbil
                 {
                     unitNamesStr[i] = unitNames.ToArray()[i];
                 }
+                //todo: کیبورد راست به چپ باشد
                 InlineKeyboardMarkup unitsKeyboard = KeyboardGenerator.makeKeyboard(unitNamesStr, 4, false, unitNamesStr);
                     
                 await bot.SendTextMessageAsync(pfd.target, "لطفاً واحد کالای درخواستی 🛒 را انتخاب یا یا در صورت عدم وجود در لیست نام دقیق آن را وارد نمائید", replyMarkup: unitsKeyboard);
@@ -360,6 +383,43 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRulePostFunction(TeleZanbilStates.ShowAdminMenu, TeleZanbilStates.CheckUserType, async (PostFunctionData pfd) =>
             {
                 await bot.SendTextMessageAsync(pfd.target, "منوی مدیر سیستم");
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.Login, async (PostFunctionData pfd) =>
+            {
+                await bot.SendTextMessageAsync(pfd.target, "لطفاً کد ورودی خود را وارد فرمائید");
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.GetInputCode, (PostFunctionData pfd) =>
+            {
+                currentTZSessionData.inputCode = pfd.action;
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.CheckInputCode, (PostFunctionData pfd) =>
+            {
+                var families = tzdb.Families.Where(f => f.InviteCode.Equals(currentTZSessionData.inputCode));
+                if(families.Count() == 0)
+                {
+                    actUsingCustomAction(pfd.m, "0");
+                }
+                else
+                {
+                    var normalRole = tzdb.Roles.Where(r => r.RoleName == "Normal").First();
+                    tzdb.Users.Add(new Models.User() { UserFamily = families.First(), TelegramUserID = pfd.m.From.Id, UserRole = normalRole });
+                    tzdb.SaveChanges();
+
+                    currentTZSessionData.family = families.First();
+                    currentTZSessionData.telegramUserID = pfd.m.From.Id;
+                    currentTZSessionData.userRole = "Normal";
+
+                    actUsingCustomAction(pfd.m, "1");
+                }
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.ShowFalseInputCode, async (PostFunctionData pfd) =>
+            {
+                //todo: ایجاد ساز و کار وقفه در صورت ورود سه باره کد ورود
+                await bot.SendTextMessageAsync(pfd.target, "کد ورودی شما نامعتبر می باشد");
             });
 
             //nfa.addRulePostFunction(TeleZanbilStates.GetMainCommand, (PostFunctionData pfd) =>
@@ -414,7 +474,7 @@ namespace ir.EmIT.TeleZanbil
             // دکمه رفرش
             zanbilItemsTitle[ziCount + 1] = new string[2];
             zanbilItemsTitle[ziCount + 1][0] = "-1";
-            zanbilItemsTitle[ziCount + 1][1] = "♻️💥 رفرش زنبیل";
+            zanbilItemsTitle[ziCount + 1][1] = "💥 رفرش زنبیل";
 
             // ساخت کیبورد عمودی با استفاده از لیست آیتم های زنبیل
             InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeVerticalKeyboard(zanbilItemsTitle);
@@ -427,6 +487,17 @@ namespace ir.EmIT.TeleZanbil
             // گرفتن زنبیل اصلی خانواده
             var mainZanbil = tzdb.Zanbils.Where(z => z.Family.FamilyId == currentTZSessionData.family.FamilyId).First();
             return mainZanbil;
+        }
+
+        private string getNewInviteCode()
+        {
+            //todo: بررسی تکراری نبودن کد دعوت
+            string str = "";
+            for (int i = 0; i < 6; i++)
+            {
+                str += new Random().Next(1, 9).ToString();
+            }
+            return str;
         }
         #endregion
     }
