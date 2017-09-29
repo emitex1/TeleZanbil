@@ -19,7 +19,6 @@ namespace ir.EmIT.TeleZanbil
         //todo: اگر کاربر معمولی روی کالایی کلیک کند رفرش می شود
         //todo: نمایش پیام خوش آمدگویی پس از لاگین
         //todo: امکان خروج از سیستم
-        //todo: متن درباره تله زنبیل کپشن باشد
         //todo: نمایش پیام مبنی بر خالی بودن زنبیل
         //todo: دکمه بازگشت از بخش ورود به سیستم
         //todo: همیشه پس از کلیک روی دکمه ها، آن صفحه کلید حذف شده و لاگ آن بماند
@@ -274,16 +273,16 @@ namespace ir.EmIT.TeleZanbil
             {
                 await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastMsgId);
 
-                //todo: تکمیل متن و عکس درباره ما
-                await bot.SendTextMessageAsync(pfd.target,
-                    "🛍 تله زنبیل 🛍" + "\n" +
+                //todo: تکمیل عکس درباره ما
+                await bot.SendPhotoAsync(pfd.target,
+                    new FileToSend("AboutPoster", new FileStream("Images\\AboutZanbil.png", FileMode.Open)),
+                    "🛍 تله زنبیل 🛍" + "\r\n" +
                     "💥 زنبیل تلگرامی خانواده 💥" + "\n" +
                     "🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟" + "\n" +
                     "با استفاده از تله زنبیل می توانید لیست خرید خود و خانواده تان را مدیریت کنید" + "\n" +
-                    "🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟" + "\n" +
+                    "🔸🔹🔸🔹🔸🔹🔸🔹🔸" + "\n" +
                     "@TeleZanbilBot"
                     );
-                await bot.SendPhotoAsync(pfd.target, new FileToSend("AboutPoster", new FileStream("Images\\AboutZanbil.png", FileMode.Open)));
             });
 
             // پرسیدن نام خانواده
