@@ -332,6 +332,11 @@ namespace ir.EmIT.TeleZanbil
                 await showZanbilContentAsync(pfd);
             });
 
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.RefreshZanbil, async (PostFunctionData pfd) =>
+            {
+                await showZanbilContentAsync(pfd);
+            });            
+
             nfa.addRulePostFunction(TeleZanbilStates.CheckAcceptZanbilItemPermission, (PostFunctionData pfd) =>
             {
                 currentTZSessionData.zanbilItemNo = Convert.ToInt32(pfd.m.Text);
