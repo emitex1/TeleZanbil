@@ -13,7 +13,6 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
-        //todo: imp: اگر کاربر معمولی روی کالایی کلیک کند رفرش می شود
         //todo: imp: نمایش پیام خوش آمدگویی پس از لاگین
         //todo: imp: نمایش پیام مبنی بر خالی بودن زنبیل
         //todo: imp: در اولین ورود به اپ راهنما نمایش داده شود
