@@ -122,18 +122,18 @@ namespace ir.EmIT.TeleZanbil
 
             if (tzdb.Units.Count() == 0)
             {
-                tzdb.Units.Add(new Unit() { Title = "عدد" });
-                tzdb.Units.Add(new Unit() { Title = "بسته" });
-                tzdb.Units.Add(new Unit() { Title = "قالب" });
                 tzdb.Units.Add(new Unit() { Title = "تا" });
-                tzdb.Units.Add(new Unit() { Title = "کیلو" });
-                tzdb.Units.Add(new Unit() { Title = "گرم" });
-                tzdb.Units.Add(new Unit() { Title = "میلی گرم" });
+                tzdb.Units.Add(new Unit() { Title = "قالب" });
+                tzdb.Units.Add(new Unit() { Title = "بسته" });
+                tzdb.Units.Add(new Unit() { Title = "عدد" });
                 tzdb.Units.Add(new Unit() { Title = "مثقال" });
-                tzdb.Units.Add(new Unit() { Title = "متر" });
-                tzdb.Units.Add(new Unit() { Title = "سانتی متر" });
-                tzdb.Units.Add(new Unit() { Title = "میلی متر" });
+                tzdb.Units.Add(new Unit() { Title = "میلی گرم" });
+                tzdb.Units.Add(new Unit() { Title = "گرم" });
+                tzdb.Units.Add(new Unit() { Title = "کیلو" });
                 tzdb.Units.Add(new Unit() { Title = "لیتر" });
+                tzdb.Units.Add(new Unit() { Title = "میلی متر" });
+                tzdb.Units.Add(new Unit() { Title = "سانتی متر" });
+                tzdb.Units.Add(new Unit() { Title = "متر" });
             }
         }
 
