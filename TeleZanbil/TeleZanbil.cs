@@ -13,29 +13,29 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
+        //todo: imp: اگر کاربر معمولی روی کالایی کلیک کند رفرش می شود
+        //todo: imp: نمایش پیام خوش آمدگویی پس از لاگین
+        //todo: imp: نمایش پیام مبنی بر خالی بودن زنبیل
+        //todo: imp: در اولین ورود به اپ راهنما نمایش داده شود
+        //todo: imp: دکمه ها آیکونی
+        //todo: imp: گذاشتن دکمه کانفیگ
+        //todo: imp: دکمه راهنما
+        //todo: imp: امکان خروج از سیستم
+        //todo: imp: خروج اعضا به راحتی با حذف کاربر
+        //todo: imp: خروج پدر هم با حذف منطقی همه چیز باشد
+        //todo: imp: دکمه بازگشت از بخش ورود به سیستم
+        //todo: imp: تست همزمان دو کاربر
+        //todo: imp: کانفیگ تغییر زبان به کرمونی
+        //todo: imp: دیدن لیست خانواده
+        //todo: imp: درباره ما در زمان پس از لاگین
+        //todo: imp: همیشه پس از کلیک روی دکمه ها، آن صفحه کلید حذف شده و لاگ آن بماند
+
         //todo: امکان دعوت از دیگران با ارسال کد
         //todo: نمایش سابقه خرید
         //todo: تحلیل پنل مدیریتی
-        //todo: اگر کاربر معمولی روی کالایی کلیک کند رفرش می شود
-        //todo: نمایش پیام خوش آمدگویی پس از لاگین
-        //todo: امکان خروج از سیستم
-        //todo: نمایش پیام مبنی بر خالی بودن زنبیل
-        //todo: دکمه بازگشت از بخش ورود به سیستم
-        //todo: همیشه پس از کلیک روی دکمه ها، آن صفحه کلید حذف شده و لاگ آن بماند
-        //todo: تست همزمان دو کاربر
-        //todo: کاربر معمولی دکمه های کد ورود را نبیند
-        //todo: گذاشتن دکمه کانفیگ
-        //todo: دکمه راهنما
-        //todo: دکمه ها آیکونی
-        //todo: در اولین ورود به اپ راهنما نمایش داده شود
         //todo: انتقال دکمه ها به منوی اصلی جدا از لیست زنبیل
-        //todo: کانفیگ تغییر زبان به کرمونی
-        //todo: دیدن لیست خانواده
-        //todo: امکان حذف اعضای خانواده
-        //todo: خروج اعضا به راحتی با حذف کاربر
-        //todo: خروج پدر هم با حذف منطقی همه چیز باشد
         //todo: کانفیگ دکمه ها این.لاین یا در باکس اصلی
-        //todo: درباره ما در زمان پس از لاگین
+        //todo: امکان حذف اعضای خانواده
 
         #region کلاس های مورداستفاده
         class TeleZanbilStates : BotStates
@@ -271,7 +271,7 @@ namespace ir.EmIT.TeleZanbil
             {
                 await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastMsgId);
 
-                //todo: تکمیل عکس درباره ما
+                //todo: imp: تکمیل عکس درباره ما
                 await bot.SendPhotoAsync(pfd.target,
                     new FileToSend("AboutPoster", new FileStream("Images\\AboutZanbil.png", FileMode.Open)),
                     "🛍 تله زنبیل 🛍" + "\r\n" +
@@ -295,7 +295,6 @@ namespace ir.EmIT.TeleZanbil
                 // گرفتن اسم خانواده از ورودی کاربر
                 string familyName = pfd.action;
 
-                //todo: بررسی تکراری نبودن خانواده
                 //ثبت خانواده
                 var family = tzdb.Families.Add(new Family() { FamilyName = familyName , InviteCode = getNewInviteCode(), IsDeleted = false });
                 currentTZSessionData.family = family;
@@ -384,14 +383,14 @@ namespace ir.EmIT.TeleZanbil
                 currentTZSessionData.zanbilItemName = pfd.action;
 
                 // نمایش لیست و درخواست ورود مقدار کالای درخواستی
-                //todo: کیبورد شامل ربع و نیم و ضرایب 10 هم باشد
+                //todo: imp: کیبورد شامل ربع و نیم و ضرایب 10 هم باشد
                 InlineKeyboardMarkup numberKeyboard = KeyboardGenerator.makeNumberMatrixKeyboard(1, 9, 3);
                 await bot.SendTextMessageAsync(pfd.target, "لطفاً مقدار کالای درخواستی 🛒 را انتخاب کنید یا در صورت نیاز مقدار دقیق آن را وارد نمائید", replyMarkup: numberKeyboard);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.GetZanbilItemUnit, async (PostFunctionData pfd) =>
             {
-                //todo: امکان ثبت اعداد اعشار
+                //todo: imp: امکان ثبت اعداد اعشار
                 // گرفتن مقدار کالای درخواستی از مرحله قبل
                 currentTZSessionData.zanbilItemAmount = Convert.ToInt32(pfd.action);
 
@@ -426,7 +425,7 @@ namespace ir.EmIT.TeleZanbil
                 tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = currentTZSessionData.zanbilItemName, ItemAmount = currentTZSessionData.zanbilItemAmount, Zanbil = mainZanbil, IsBought = false, ItemUnit = unit, BuyDate = DateTime.Now, CreatorUserID = userID });
                 tzdb.SaveChanges();
 
-                //todo: حذف همه پیام های در حین افزودن کالا به زنبیل
+                //todo: imp: حذف همه پیام های در حین افزودن کالا به زنبیل
                 await bot.SendTextMessageAsync(pfd.target, "«" + currentTZSessionData.zanbilItemAmount + " " + currentTZSessionData.zanbilItemUnit + " " + currentTZSessionData.zanbilItemName + "» 🛒 به زنبیل خانواده شما اضافه شد 👌");
             });
 
