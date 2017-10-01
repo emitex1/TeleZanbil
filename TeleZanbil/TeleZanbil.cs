@@ -526,7 +526,7 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.Config, async (PostFunctionData pfd) =>
             {
-                await bot.SendTextMessageAsync(pfd.target, "لطفاً انتخاب کنید", replyMarkup: makeConfigKeyboard());
+                await bot.SendTextMessageAsync(pfd.target, "⚙️ تنظیمات ⚙️", replyMarkup: makeConfigKeyboard());
             });
 
             //nfa.addRulePostFunction(TeleZanbilStates.GetMainCommand, (PostFunctionData pfd) =>
@@ -675,9 +675,9 @@ namespace ir.EmIT.TeleZanbil
             configItems[i][0][0] = "👁‍ درباره ما";
             configItems[i][0][1] = "about";
 
-            InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeKeyboard(configItems);
+            InlineKeyboardMarkup configKeyboard = KeyboardGenerator.makeKeyboard(configItems);
 
-            return zanbilContentKeyboard;
+            return configKeyboard;
         }
 
         private Zanbil getMainZanbil()
