@@ -328,6 +328,8 @@ namespace ir.EmIT.TeleZanbil
                 //ثبت خانواده
                 var family = tzdb.Families.Add(new Family() { FamilyName = familyName , InviteCode = getNewInviteCode(), IsDeleted = false });
                 currentTZSessionData.family = family;
+                currentTZSessionData.userRole = "Father";
+                currentTZSessionData.telegramUserID = pfd.m.From.Id;
                 tzdb.SaveChanges();
 
                 // ثبت کاربر و زنبیل اصلی مربوط به این خانواده
