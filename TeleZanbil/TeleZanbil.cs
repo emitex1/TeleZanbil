@@ -39,58 +39,69 @@ namespace ir.EmIT.TeleZanbil
         #region کلاس های مورداستفاده
         class TeleZanbilStates : BotStates
         {
+            // بررسی نوع کاربر
             public static BotState CheckUserType = new BotState(2, "بررسی نوع کاربر");
+
+            // منوی اصلی قبل از ورود
             public static BotState GetMainCommand = new BotState(3, "گرفتن دستور اصلی");
             public static BotState ShowAboutUs = new BotState(4, "نمایش درباره ما");
             public static BotState StartRegFamily = new BotState(5, "شروع روال ثبت خانواده");
             public static BotState Login = new BotState(6, "ورود اعضای خانواده");
+            public static BotState ShowWelcomeForNormalUsers = new BotState(27, "نمایش پیام خوش آمدگویی اعضا و پیام راهنما");
             public static BotState ShowInvalidCommand = new BotState(7, "نمایش ورودی نامعتبر");
 
+            // روال ثبت خانواده
             public static BotState GetFamilyName = new BotState(8, "دریافت اسم خانواده");
             public static BotState RegisterFamily = new BotState(9, "ثبت خانواده");
+            public static BotState ShowWelcomeForFather = new BotState(26, "نمایش پیام خوش آمدگویی پدر و پیام راهنما");
 
+            // روال ورود
             public static BotState GetInputCode = new BotState(10, "دریافت کد ورود");
             public static BotState CheckInputCode = new BotState(11, "بررسی کد ورود");
             public static BotState FalseInputCode = new BotState(12, "غلط بودن کد ورود");
             public static BotState ShowFalseInputCode = new BotState(13, "نمایش غلط بودن کد ورود");
             public static BotState TrueInputCode = new BotState(14, "درست بودن کد ورود");
 
+            // نمایش محتوی زنبیل
             public static BotState ShowZanbilContent = new BotState(15, "نمایش محتوی زنبیل");
 
+            // دکمه های دیگر صفحه نمایش زنبیل
             public static BotState AddNewZanbilItem = new BotState(16, "اضافه کردن آیتم جدید به زنبیل");
+            public static BotState RefreshZanbil = new BotState(25, "تازه سازی زنبیل");
+            public static BotState ShowInviteCode = new BotState(28, "نمایش کد دعوت");
+            public static BotState RegenerateInviteCode = new BotState(29, "بازسازی کد دعوت");
+            public static BotState ShowAboutA = new BotState(31, "نمایش درباره تله زنبیل a");
+            public static BotState ShowFamilyList = new BotState(32, "نمایش لیست خانواده");
+            public static BotState ShowHelp = new BotState(33, "نمایش راهنما");
+            public static BotState Logout = new BotState(34, "خروج از سیستم");
+            public static BotState AskHistoryType = new BotState(35, "پرسیدن نوع  نمایش سابقه زنبیل");
+            public static BotState Config = new BotState(38, "نمایش صفحه کانفیگ");
 
+            // روال افزودن کالا
             public static BotState ShowSuggestion = new BotState(17, "نمایش پیشنهادات کالا");
             public static BotState GetZanbilItemName = new BotState(18, "پرسیدن اسم کالا برای افزودن به زنبیل");
             public static BotState GetZanbilItemAmount = new BotState(19, "پرسیدن مقدار کالا برای افزودن به زنبیل");
             public static BotState GetZanbilItemUnit = new BotState(20, "پرسیدن واحد کالا برای افزودن به زنبیل");
             public static BotState SaveZanbilItem = new BotState(21, "افزودن کالا به زنبیل");
 
+            // روال تایید خرید کالا
             public static BotState CheckAcceptZanbilItemPermission = new BotState(22, "بررسی مجوز تایید خرید آیتم زنبیل براساس نقش کاربر جاری");
             public static BotState AcceptZanbilItem = new BotState(23, "تایید خرید آیتم زنبیل");
             public static BotState NotHaveAcceptPermission = new BotState(24, "عدم داشتن مجوز برای تایید خرید آیتم زنبیل");
 
-            public static BotState RefreshZanbil = new BotState(25, "تازه سازی زنبیل");
-
-            public static BotState ShowWelcomeForFather = new BotState(26, "نمایش پیام خوش آمدگویی پدر و پیام راهنما");
-            public static BotState ShowWelcomeForNormalUsers = new BotState(27, "نمایش پیام خوش آمدگویی اعضا و پیام راهنما");
-
-            public static BotState ShowInviteCode = new BotState(28, "نمایش کد دعوت");
-            public static BotState RegenerateInviteCode = new BotState(29, "بازسازی کد دعوت");
-
-            public static BotState ShowAdminMenu = new BotState(30, "نمایش منوی مدیر سیستم");
-
-            public static BotState ShowAboutA = new BotState(31, "نمایش درباره تله زنبیل a");
-            public static BotState ShowFamilyList = new BotState(32, "نمایش لیست خانواده");
-            public static BotState ShowHelp = new BotState(33, "نمایش راهنما");
-            public static BotState Logout = new BotState(34, "خروج از سیستم");
-            public static BotState AskHistoryType = new BotState(35, "پرسیدن نوع  نمایش سابقه زنبیل");
+            // نمایش سابقه زنبیل
             public static BotState ShowSummaryHistory = new BotState(36, "نمایش خلاصه سابقه زنبیل");
             public static BotState ShowFullHistory = new BotState(37, "نمایش مفصل سابقه زنبیل");
-            public static BotState Config = new BotState(38, "نمایش صفحه کانفیگ");
+
+            // صفحه کانفیگ
             public static BotState AskLanguage = new BotState(39, "نمایش صفحه تغییر زبان");
             public static BotState ChangeLanguage = new BotState(40, "تغییر زبان");
             public static BotState AskKeyboardPlace = new BotState(41, "نمایش صفحه تغییر محل دکمه ها");
             public static BotState ChangeKeyboardPlace = new BotState(42, "تغییر محل دکمه ها");
+
+            // مدیریت سیستم
+            public static BotState ShowAdminMenu = new BotState(30, "نمایش منوی مدیر سیستم");
+
         }
 
         //todo: تبدیل این ساختار سشن فعلی به متغیرهای موجود در محیط
