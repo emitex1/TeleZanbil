@@ -200,7 +200,11 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "inviteCode", TeleZanbilStates.ShowInviteCode);
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "regenerateInviteCode", TeleZanbilStates.RegenerateInviteCode);
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "history", TeleZanbilStates.AskHistoryType);
-            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "logout", TeleZanbilStates.Logout);            
+            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "logout", TeleZanbilStates.Logout);
+            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "about", TeleZanbilStates.ShowAboutA);
+            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "family", TeleZanbilStates.ShowFamilyList);
+            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "config", TeleZanbilStates.Config);
+            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "help", TeleZanbilStates.ShowHelp);
             nfa.addRegexRule(TeleZanbilStates.ShowZanbilContent, "[0-9]+", TeleZanbilStates.CheckAcceptZanbilItemPermission);
 
             nfa.addRule(TeleZanbilStates.RefreshZanbil, TeleZanbilStates.ShowZanbilContent);
