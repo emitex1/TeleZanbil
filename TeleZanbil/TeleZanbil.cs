@@ -71,13 +71,26 @@ namespace ir.EmIT.TeleZanbil
 
             public static BotState RefreshZanbil = new BotState(25, "تازه سازی زنبیل");
 
-            public static BotState ShowInviteCode = new BotState(26, "نمایش کد دعوت");
-            public static BotState RegenerateInviteCode = new BotState(27, "بازسازی کد دعوت");
-            public static BotState ShowHistory = new BotState(28, "نمایش سابقه");
-            public static BotState Logout = new BotState(29, "خروج");
+            public static BotState ShowWelcomeForFather = new BotState(26, "نمایش پیام خوش آمدگویی پدر و پیام راهنما");
+            public static BotState ShowWelcomeForNormalUsers = new BotState(27, "نمایش پیام خوش آمدگویی اعضا و پیام راهنما");
+
+            public static BotState ShowInviteCode = new BotState(28, "نمایش کد دعوت");
+            public static BotState RegenerateInviteCode = new BotState(29, "بازسازی کد دعوت");
 
             public static BotState ShowAdminMenu = new BotState(30, "نمایش منوی مدیر سیستم");
 
+            public static BotState ShowAboutA = new BotState(31, "نمایش درباره تله زنبیل a");
+            public static BotState ShowFamilyList = new BotState(32, "نمایش لیست خانواده");
+            public static BotState ShowHelp = new BotState(33, "نمایش راهنما");
+            public static BotState Logout = new BotState(34, "خروج از سیستم");
+            public static BotState AskHistoryType = new BotState(35, "پرسیدن نوع  نمایش سابقه زنبیل");
+            public static BotState ShowSummaryHistory = new BotState(36, "نمایش خلاصه سابقه زنبیل");
+            public static BotState ShowFullHistory = new BotState(37, "نمایش مفصل سابقه زنبیل");
+            public static BotState Config = new BotState(38, "نمایش صفحه کانفیگ");
+            public static BotState AskLanguage = new BotState(39, "نمایش صفحه تغییر زبان");
+            public static BotState ChangeLanguage = new BotState(40, "تغییر زبان");
+            public static BotState AskKeyboardPlace = new BotState(41, "نمایش صفحه تغییر محل دکمه ها");
+            public static BotState ChangeKeyboardPlace = new BotState(42, "تغییر محل دکمه ها");
         }
 
         //todo: تبدیل این ساختار سشن فعلی به متغیرهای موجود در محیط
@@ -186,7 +199,7 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "refresh", TeleZanbilStates.RefreshZanbil);
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "inviteCode", TeleZanbilStates.ShowInviteCode);
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "regenerateInviteCode", TeleZanbilStates.RegenerateInviteCode);
-            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "history", TeleZanbilStates.ShowHistory);
+            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "history", TeleZanbilStates.AskHistoryType);
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "logout", TeleZanbilStates.Logout);            
             nfa.addRegexRule(TeleZanbilStates.ShowZanbilContent, "[0-9]+", TeleZanbilStates.CheckAcceptZanbilItemPermission);
 
