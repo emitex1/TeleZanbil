@@ -13,7 +13,7 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
-        //todo: imp: نمایش پیام خوش آمدگویی پس از لاگین
+        //todo: imp: نمایش پیام خوش آمدگویی پس از لاگین برای اعضا
         //todo: imp: نمایش پیام مبنی بر خالی بودن زنبیل
         //todo: imp: در اولین ورود به اپ راهنما نمایش داده شود
         //todo: imp: دکمه راهنما
@@ -191,7 +191,8 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRule(TeleZanbilStates.StartRegFamily, TeleZanbilStates.GetFamilyName);
             nfa.addRegexRule(TeleZanbilStates.GetFamilyName, ".*", TeleZanbilStates.RegisterFamily);
-            nfa.addRule(TeleZanbilStates.RegisterFamily, TeleZanbilStates.ShowZanbilContent);
+            nfa.addRule(TeleZanbilStates.RegisterFamily, TeleZanbilStates.ShowWelcomeForFather);
+            nfa.addRule(TeleZanbilStates.ShowWelcomeForFather, TeleZanbilStates.ShowZanbilContent);
 
 
             nfa.addRule(TeleZanbilStates.Login, "CANCEL_LOGIN_CMD_EMIT", TeleZanbilStates.GetMainCommand);
@@ -337,6 +338,16 @@ namespace ir.EmIT.TeleZanbil
                 tzdb.SaveChanges();
             });
 
+            nfa.addRulePostFunction(TeleZanbilStates.ShowWelcomeForFather, async (PostFunctionData pfd) =>
+            {
+                await bot.SendTextMessageAsync(pfd.target, 
+                    "آقا/خانم " + pfd.m.From.FirstName + " " + pfd.m.From.LastName + (pfd.m.From.Username != "" ? " (" + pfd.m.From.Username + ")" : "") +
+                    " خوش آمدید 🌼" + "\n" +
+                    "خانواده شما با نام «" + currentTZSessionData.family.FamilyName + "» ثبت شد 👌🏻"
+                );
+                await showHelpForFatherAsync(pfd);
+            });
+
             nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.AcceptZanbilItem, async (PostFunctionData pfd) =>
             {
                 await showZanbilContentAsync(pfd);
@@ -352,7 +363,7 @@ namespace ir.EmIT.TeleZanbil
                 await showZanbilContentAsync(pfd);
             });
 
-            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.RegisterFamily, async (PostFunctionData pfd) =>
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.ShowWelcomeForFather, async (PostFunctionData pfd) =>
             {
                 await showZanbilContentAsync(pfd);
             });
@@ -521,20 +532,6 @@ namespace ir.EmIT.TeleZanbil
             //nfa.addRulePostFunction(TeleZanbilStates.GetMainCommand, (PostFunctionData pfd) =>
             //{
             //});
-        }
-        
-        private async Task showInviteCode(PostFunctionData pfd)
-        {
-            await bot.SendTextMessageAsync(pfd.target,
-                    "..................🛍 تله زنبیل 🛍.................." + "\n" +
-                    "🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟" + "\n\n" +
-                    "کد دعوت 👨‍👩‍👧‍👧 خانواده «" + currentTZSessionData.family.FamilyName + "»:" + "\n" +
-                    currentTZSessionData.family.InviteCode + "\n" +
-                    "〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰〰️〰️" + "\n" +
-                    "برای دعوت از سایر اعضای خانواده خود، این کد دعوت را برای آن ها بفرستید" + "\n" +
-                    "🛍 تله زنبیل، زنبیل تلگرامی خانواده 🛍" + "\n" +
-                    "@TeleZanbilBot"
-                    );
         }
 
         public override List<long> getAuthenticatedUsers()
@@ -717,6 +714,34 @@ namespace ir.EmIT.TeleZanbil
             Message keyboardMsg = await bot.SendTextMessageAsync(pfd.target, "🛍 زنبیل خانواده «" + currentTZSessionData.family.FamilyName + "»", replyMarkup: zanbilContentKeyboard);
             currentTZSessionData.lastMsgId = keyboardMsg.MessageId;
         }
+
+        private async Task showHelpForFatherAsync(PostFunctionData pfd)
+        {
+            await bot.SendTextMessageAsync(pfd.target,
+                "شما می توانید با کلیک بر روی دکمه «افزودن ✏️» اقلام مختلف کالایی را وارد زنبیل خانواده خود نمائید" + "\n" +
+                "همچنین پس از خرید هر یک از اقلام، با کلیک روی آن، آن کالا از زنبیل شما حذف و سابقه خرید آن در بخش سوابق خرید ثبت خواهد شد" + "\n" +
+                "همچنین برای افزودن هریک از اعضای خانواده خود، کافی به صفحه «⚙️ تنظیمات» رفته و پس از دریافت (یا بازسازی) کد دعوت، آن را برای اعضای خانواده خود ارسال نمائید" + "\n" +
+                "هریک از اعضای خانواده پس از پیوستن به زنبیل خانواده شما می توانند نسبت به افزودن اقلام خریدنی به زنبیل اقدام نمایند. شما با هربار کلیک روی دکمه «💥 رفرش» می توانید از آخرین تغییرات زنبیل خانواده تان مطلع شوید" + "\n" +
+                "در صورتی نیاز به پاسخگویی در مورد سوالات بیشتر به کانال «تله زنبیل» مراجعه نموده و یا با مدیر تماس حاصل فرمائید" + "\n" +
+                "مدیر : @Em_IT" + "\n" +
+                "کانال : @TeleZanbil"
+            );
+        }
+
+        private async Task showInviteCode(PostFunctionData pfd)
+        {
+            await bot.SendTextMessageAsync(pfd.target,
+                    "..................🛍 تله زنبیل 🛍.................." + "\n" +
+                    "🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟" + "\n\n" +
+                    "کد دعوت 👨‍👩‍👧‍👧 خانواده «" + currentTZSessionData.family.FamilyName + "»:" + "\n" +
+                    currentTZSessionData.family.InviteCode + "\n" +
+                    "〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰〰️〰️" + "\n" +
+                    "برای دعوت از سایر اعضای خانواده خود، این کد دعوت را برای آن ها بفرستید" + "\n" +
+                    "🛍 تله زنبیل، زنبیل تلگرامی خانواده 🛍" + "\n" +
+                    "@TeleZanbilBot"
+                    );
+        }
+
         #endregion
     }
 }
