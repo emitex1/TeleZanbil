@@ -13,9 +13,7 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
-        //todo: imp: نمایش پیام خوش آمدگویی پس از لاگین برای اعضا
         //todo: imp: نمایش پیام مبنی بر خالی بودن زنبیل
-        //todo: imp: در اولین ورود به اپ راهنما نمایش داده شود
         //todo: imp: دکمه راهنما
         //todo: imp: امکان خروج از سیستم
         //todo: imp: خروج اعضا به راحتی با حذف کاربر
@@ -202,7 +200,8 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRule(TeleZanbilStates.CheckInputCode, "1", TeleZanbilStates.TrueInputCode);
             nfa.addRule(TeleZanbilStates.FalseInputCode, TeleZanbilStates.ShowFalseInputCode);
             nfa.addRule(TeleZanbilStates.ShowFalseInputCode, TeleZanbilStates.Login);
-            nfa.addRule(TeleZanbilStates.TrueInputCode, TeleZanbilStates.ShowZanbilContent);
+            nfa.addRule(TeleZanbilStates.TrueInputCode, TeleZanbilStates.ShowWelcomeForNormalUsers);
+            nfa.addRule(TeleZanbilStates.ShowWelcomeForNormalUsers, TeleZanbilStates.ShowZanbilContent);
 
 
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "add", TeleZanbilStates.AddNewZanbilItem);
@@ -368,7 +367,7 @@ namespace ir.EmIT.TeleZanbil
                 await showZanbilContentAsync(pfd);
             });
 
-            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.TrueInputCode, async (PostFunctionData pfd) =>
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.ShowWelcomeForNormalUsers, async (PostFunctionData pfd) =>
             {
                 await showZanbilContentAsync(pfd);
             });
@@ -502,7 +501,17 @@ namespace ir.EmIT.TeleZanbil
                 await bot.SendTextMessageAsync(pfd.target, "کد ورودی شما نامعتبر می باشد");
             });
 
-            
+            nfa.addRulePostFunction(TeleZanbilStates.ShowWelcomeForNormalUsers, async (PostFunctionData pfd) =>
+            {
+                await bot.SendTextMessageAsync(pfd.target,
+                    "آقا/خانم " + pfd.m.From.FirstName + " " + pfd.m.From.LastName + (pfd.m.From.Username != "" ? " (" + pfd.m.From.Username + ")" : "") +
+                    " خوش آمدید 🌼" + "\n" +
+                    "شما به زنبیل خانواده  «" + currentTZSessionData.family.FamilyName + "» پیوستید 👌🏻"
+                );
+                await showHelpForNormalAsync(pfd);
+            });
+
+
             nfa.addRulePostFunction(TeleZanbilStates.ShowInviteCode, async (PostFunctionData pfd) =>
             {
                 await showInviteCode(pfd);
@@ -721,6 +730,18 @@ namespace ir.EmIT.TeleZanbil
                 "شما می توانید با کلیک بر روی دکمه «افزودن ✏️» اقلام مختلف کالایی را وارد زنبیل خانواده خود نمائید" + "\n" +
                 "همچنین پس از خرید هر یک از اقلام، با کلیک روی آن، آن کالا از زنبیل شما حذف و سابقه خرید آن در بخش سوابق خرید ثبت خواهد شد" + "\n" +
                 "همچنین برای افزودن هریک از اعضای خانواده خود، کافی به صفحه «⚙️ تنظیمات» رفته و پس از دریافت (یا بازسازی) کد دعوت، آن را برای اعضای خانواده خود ارسال نمائید" + "\n" +
+                "هریک از اعضای خانواده پس از پیوستن به زنبیل خانواده شما می توانند نسبت به افزودن اقلام خریدنی به زنبیل اقدام نمایند. شما با هربار کلیک روی دکمه «💥 رفرش» می توانید از آخرین تغییرات زنبیل خانواده تان مطلع شوید" + "\n" +
+                "در صورتی نیاز به پاسخگویی در مورد سوالات بیشتر به کانال «تله زنبیل» مراجعه نموده و یا با مدیر تماس حاصل فرمائید" + "\n" +
+                "مدیر : @Em_IT" + "\n" +
+                "کانال : @TeleZanbil"
+            );
+        }
+
+        private async Task showHelpForNormalAsync(PostFunctionData pfd)
+        {
+            await bot.SendTextMessageAsync(pfd.target,
+                "شما می توانید با کلیک بر روی دکمه «افزودن ✏️» اقلام مختلف کالایی را وارد زنبیل خانواده خود نمائید" + "\n" +
+                "پدر خانواده پس از خرید هریک از این اقلام، آن ها را از لیست حذف خواهد کرد" + "\n" +
                 "هریک از اعضای خانواده پس از پیوستن به زنبیل خانواده شما می توانند نسبت به افزودن اقلام خریدنی به زنبیل اقدام نمایند. شما با هربار کلیک روی دکمه «💥 رفرش» می توانید از آخرین تغییرات زنبیل خانواده تان مطلع شوید" + "\n" +
                 "در صورتی نیاز به پاسخگویی در مورد سوالات بیشتر به کانال «تله زنبیل» مراجعه نموده و یا با مدیر تماس حاصل فرمائید" + "\n" +
                 "مدیر : @Em_IT" + "\n" +
