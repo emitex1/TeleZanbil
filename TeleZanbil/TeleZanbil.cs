@@ -208,14 +208,7 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "add", TeleZanbilStates.AddNewZanbilItem);
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "refresh", TeleZanbilStates.RefreshZanbil);
-            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "inviteCode", TeleZanbilStates.ShowInviteCode);
-            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "regenerateInviteCode", TeleZanbilStates.RegenerateInviteCode);
-            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "history", TeleZanbilStates.AskHistoryType);
-            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "logout", TeleZanbilStates.Logout);
-            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "about", TeleZanbilStates.ShowAboutA);
-            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "family", TeleZanbilStates.ShowFamilyList);
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "config", TeleZanbilStates.Config);
-            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "help", TeleZanbilStates.ShowHelp);
             nfa.addRegexRule(TeleZanbilStates.ShowZanbilContent, "[0-9]+", TeleZanbilStates.CheckAcceptZanbilItemPermission);
 
             nfa.addRule(TeleZanbilStates.RefreshZanbil, TeleZanbilStates.ShowZanbilContent);
@@ -234,7 +227,17 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRule(TeleZanbilStates.NotHaveAcceptPermission, TeleZanbilStates.ShowZanbilContent);
 
             nfa.addRule(TeleZanbilStates.ShowInviteCode, TeleZanbilStates.ShowZanbilContent);
-            nfa.addRule(TeleZanbilStates.RegenerateInviteCode, TeleZanbilStates.ShowZanbilContent);           
+            nfa.addRule(TeleZanbilStates.RegenerateInviteCode, TeleZanbilStates.ShowZanbilContent);
+
+            nfa.addRule(TeleZanbilStates.Config, "inviteCode", TeleZanbilStates.ShowInviteCode);
+            nfa.addRule(TeleZanbilStates.Config, "regenerateInviteCode", TeleZanbilStates.RegenerateInviteCode);
+            nfa.addRule(TeleZanbilStates.Config, "history", TeleZanbilStates.AskHistoryType);
+            nfa.addRule(TeleZanbilStates.Config, "family", TeleZanbilStates.ShowFamilyList);
+            nfa.addRule(TeleZanbilStates.Config, "language", TeleZanbilStates.AskLanguage);
+            nfa.addRule(TeleZanbilStates.Config, "keyboardPlace", TeleZanbilStates.AskKeyboardPlace);
+            nfa.addRule(TeleZanbilStates.Config, "help", TeleZanbilStates.ShowHelp);
+            nfa.addRule(TeleZanbilStates.Config, "logout", TeleZanbilStates.Logout);
+            nfa.addRule(TeleZanbilStates.Config, "about", TeleZanbilStates.ShowAboutA);
 
             /*
             ShowAdminMenu
@@ -388,21 +391,6 @@ namespace ir.EmIT.TeleZanbil
                     await bot.SendTextMessageAsync(pfd.target, "شماره آیتم ورودی نامعتبر ⛔️ می باشد");
             });
 
-            /*nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContentForFather, TeleZanbilStates.AcceptZanbilItem, async (PostFunctionData pfd) =>
-            {
-                // حذف کیبورد قبلی
-                await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastMsgId);
-
-                // بدست آوردن محتوی زنبیل در قالب یک کیبورد
-                InlineKeyboardMarkup zanbilContentKeyboard = makeZanbilContentKeyboard();
-
-                // آپدیت کیبورد مربوط به پیام لیست آیتم های زنبیل
-                //await bot.EditMessageReplyMarkupAsync(pfd.target, currentTZSessionData.lastMsgId, zanbilContentKeyboard);
-
-                // ساخت کیبورد جدید آیتم ها
-                Message keyboardMsg = await bot.SendTextMessageAsync(pfd.target, "زنبیل 🛍 خانواده " + currentTZSessionData.family.FamilyName, replyMarkup: zanbilContentKeyboard);
-                currentTZSessionData.lastMsgId = keyboardMsg.MessageId;
-            });*/
 
             nfa.addRulePostFunction(TeleZanbilStates.GetZanbilItemName, async (PostFunctionData pfd) =>
             {
@@ -525,11 +513,16 @@ namespace ir.EmIT.TeleZanbil
                 await showInviteCode(pfd);
             });
 
+            nfa.addRulePostFunction(TeleZanbilStates.Config, async (PostFunctionData pfd) =>
+            {
+                await bot.SendTextMessageAsync(pfd.target, "لطفاً انتخاب کنید", replyMarkup: makeConfigKeyboard());
+            });
+
             //nfa.addRulePostFunction(TeleZanbilStates.GetMainCommand, (PostFunctionData pfd) =>
             //{
             //});
         }
-
+        
         private async Task showInviteCode(PostFunctionData pfd)
         {
             await bot.SendTextMessageAsync(pfd.target,
@@ -573,10 +566,7 @@ namespace ir.EmIT.TeleZanbil
             int ziCount = zanbilItems.Count();
 
             string[][][] zanbilItemsTitle;
-            if (currentTZSessionData.userRole == "Father")
-                zanbilItemsTitle = new string[ziCount + 3][][];
-            else //else if (currentTZSessionData.userRole == "Normal")
-                zanbilItemsTitle = new string[ziCount + 2][][];
+            zanbilItemsTitle = new string[ziCount + 1][][];
 
             // ساخت لیست رشته شامل معرفی آیتم های زنبیل
             int i;
@@ -590,50 +580,104 @@ namespace ir.EmIT.TeleZanbil
             }
 
             i = ziCount;
-            zanbilItemsTitle[i] = new string[2][];
+            zanbilItemsTitle[i] = new string[3][];
             zanbilItemsTitle[i][0] = new string[2];
             zanbilItemsTitle[i][1] = new string[2];
+            zanbilItemsTitle[i][2] = new string[2];
 
             // دکمه افزودن کالای جدید
             zanbilItemsTitle[i][0][1] = "add";
-            zanbilItemsTitle[i][0][0] = "✏️ افزودن مورد جدید";
+            zanbilItemsTitle[i][0][0] = "✏️ افزودن";
 
             // دکمه رفرش
             zanbilItemsTitle[i][1][1] = "refresh";
-            zanbilItemsTitle[i][1][0] = "💥 رفرش زنبیل";
+            zanbilItemsTitle[i][1][0] = "💥 رفرش";
+
+            // دکمه کانفیگ
+            zanbilItemsTitle[i][2][1] = "config";
+            zanbilItemsTitle[i][2][0] = "⚙️ تنظیمات";
+
+
+            // ساخت کیبورد عمودی با استفاده از لیست آیتم های زنبیل
+            InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeKeyboard(zanbilItemsTitle);
+
+            return zanbilContentKeyboard;
+        }
+
+        private IReplyMarkup makeConfigKeyboard()
+        {
+            int rowsCount , i;
+            string[][][] configItems;
+            if (currentTZSessionData.userRole == "Father")
+                rowsCount = 4;
+            else //else if (currentTZSessionData.userRole == "Normal")
+                rowsCount = 3;
+
+            configItems = new string[rowsCount][][];
+            for (i = 0; i < rowsCount; i++)
+            {
+                configItems[i] = new string[2][];
+                configItems[i][0] = new string[2];
+                configItems[i][1] = new string[2];
+            }
+
+            i = 0;
 
             if (currentTZSessionData.userRole == "Father")
             {
-                i++;
-                zanbilItemsTitle[i] = new string[2][];
-                zanbilItemsTitle[i][0] = new string[2];
-                zanbilItemsTitle[i][1] = new string[2];
-
                 // دکمه نمایش کد دعوت
-                zanbilItemsTitle[i][0][1] = "inviteCode";
-                zanbilItemsTitle[i][0][0] = "💥 نمایش کد دعوت";
+                configItems[i][0][0] = "📣 نمایش کد دعوت";
+                configItems[i][0][1] = "inviteCode";
 
                 // دکمه بازسازی کد دعوت
-                zanbilItemsTitle[i][1][1] = "regenerateInviteCode";
-                zanbilItemsTitle[i][1][0] = "💥 بازسازی کد دعوت";
+                configItems[i][1][0] = "📜 بازسازی کد دعوت";
+                configItems[i][1][1] = "regenerateInviteCode";
+
+                i++;
             }
 
+            // دکمه نمایش سابقه خرید
+            configItems[i][0][0] = "🗓 سابقه خرید";
+            configItems[i][0][1] = "history";
+
+            // دکمه نمایش لیست اعضای خانواده
+            configItems[i][1][0] = "👨‍👩‍👧‍👧 مشخصات خانواده";
+            configItems[i][1][1] = "family";
+
             i++;
-            zanbilItemsTitle[i] = new string[2][];
-            zanbilItemsTitle[i][0] = new string[2];
-            zanbilItemsTitle[i][1] = new string[2];
 
             // دکمه نمایش سابقه خرید
-            zanbilItemsTitle[i][0][1] = "history";
-            zanbilItemsTitle[i][0][0] = "💥 سابقه خرید";
+            configItems[i][0][0] = "✒️🌏👅 تغییر زبان";
+            configItems[i][0][1] = "language";
+
+            // دکمه نمایش لیست اعضای خانواده
+            configItems[i][1][0] = "⌨️ تغییر محل کیبورد";
+            configItems[i][1][1] = "keyboardPlace";
+
+            i++;
+
+            // دکمه راهنما
+            configItems[i][0][0] = "⁉️ راهنما";
+            configItems[i][0][1] = "help";
 
             // دکمه خروج
-            zanbilItemsTitle[i][1][1] = "logout";
-            zanbilItemsTitle[i][1][0] = "💥 خروج";
+            configItems[i][1][0] = "🖐❌ خروج از خانواده";
+            configItems[i][1][1] = "logout";
 
-            // ساخت کیبورد عمودی با استفاده از لیست آیتم های زنبیل
-            //InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeVerticalKeyboard(zanbilItemsTitle);
-            InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeKeyboard(zanbilItemsTitle);
+            i++;
+
+            configItems[i] = new string[1][];
+            configItems[i][0] = new string[2];
+
+            /*// دکمه نمایش سابقه خرید
+            configItems[i][0][0] = "💥 سابقه خرید";
+            configItems[i][0][1] = "history";*/
+
+            // دکمه درباره ما
+            configItems[i][0][0] = "👁‍ درباره ما";
+            configItems[i][0][1] = "about";
+
+            InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeKeyboard(configItems);
 
             return zanbilContentKeyboard;
         }
