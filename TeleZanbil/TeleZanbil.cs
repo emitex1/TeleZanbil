@@ -611,9 +611,9 @@ namespace ir.EmIT.TeleZanbil
             int rowsCount , i;
             string[][][] configItems;
             if (currentTZSessionData.userRole == "Father")
-                rowsCount = 4;
+                rowsCount = 5;
             else //else if (currentTZSessionData.userRole == "Normal")
-                rowsCount = 3;
+                rowsCount = 4;
 
             configItems = new string[rowsCount][][];
             for (i = 0; i < rowsCount; i++)
@@ -649,7 +649,7 @@ namespace ir.EmIT.TeleZanbil
             i++;
 
             // دکمه نمایش سابقه خرید
-            configItems[i][0][0] = "✒️🌏👅 تغییر زبان";
+            configItems[i][0][0] = "🌏👅 تغییر زبان";
             configItems[i][0][1] = "language";
 
             // دکمه نمایش لیست اعضای خانواده
