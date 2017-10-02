@@ -16,14 +16,16 @@ namespace ir.EmIT.TeleZanbil
         //todo: imp: امکان خروج از سیستم
         //todo: imp: خروج اعضا به راحتی با حذف کاربر
         //todo: imp: خروج پدر هم با حذف منطقی همه چیز باشد
+
+        //todo: imp: دیدن مشخصات خانواده
         //todo: imp: دکمه بازگشت از بخش ورود به سیستم
         //todo: imp: دکمه بازگشت از بخش تنظیمات
         //todo: imp: تست همزمان دو کاربر
-        //todo: imp: کانفیگ تغییر زبان به کرمونی
-        //todo: imp: دیدن لیست خانواده
-        //todo: imp: درباره ما در زمان پس از لاگین
-        //todo: imp: همیشه پس از کلیک روی دکمه ها، آن صفحه کلید حذف شده و لاگ آن بماند
 
+        //todo: imp: همیشه پس از کلیک روی دکمه ها، آن صفحه کلید حذف شده و لاگ آن بماند
+        //todo: imp: امکان نگه داری لیستی از شماره کیبوردها برای حذف
+
+        //todo: کانفیگ تغییر زبان به کرمونی
         //todo: امکان دعوت از دیگران با ارسال کد
         //todo: نمایش سابقه خرید
         //todo: تحلیل پنل مدیریتی
@@ -109,7 +111,7 @@ namespace ir.EmIT.TeleZanbil
             public Family family;
             public string userRole;
 
-            public int lastMsgId;
+            public int lastKeyboardId;
 
             public int zanbilItemNo;
 
@@ -238,6 +240,7 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRule(TeleZanbilStates.Config, "about", TeleZanbilStates.ShowAboutA);
 
             nfa.addRule(TeleZanbilStates.ShowHelp, TeleZanbilStates.ShowZanbilContent);
+            nfa.addRule(TeleZanbilStates.ShowAboutA, TeleZanbilStates.ShowZanbilContent);
 
             /*
             ShowAdminMenu
@@ -293,24 +296,13 @@ namespace ir.EmIT.TeleZanbil
                     "درباره 💡 تله زنبیل"
                 }, 2, false);
                 Message m2 = await bot.SendTextMessageAsync(pfd.target, "لطفاً انتخاب کنید", replyMarkup: mainKeyboard);
-                currentTZSessionData.lastMsgId = m2.MessageId;
+                currentTZSessionData.lastKeyboardId = m2.MessageId;
             });
 
             // نمایش درباره ما
             nfa.addRulePostFunction(TeleZanbilStates.ShowAboutUs, async (PostFunctionData pfd) =>
             {
-                await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastMsgId);
-
-                //todo: imp: تکمیل عکس درباره ما
-                await bot.SendPhotoAsync(pfd.target,
-                    new FileToSend("AboutPoster", new FileStream("Images\\AboutZanbil.png", FileMode.Open)),
-                    "🛍 تله زنبیل 🛍" + "\r\n" +
-                    "💥 زنبیل تلگرامی خانواده 💥" + "\n" +
-                    "🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟" + "\n" +
-                    "با استفاده از تله زنبیل می توانید لیست خرید خود و خانواده تان را مدیریت کنید" + "\n" +
-                    "🔸🔹🔸🔹🔸🔹🔸🔹🔸" + "\n" +
-                    "@TeleZanbilBot"
-                    );
+                await showAboutAsync(pfd);
             });
 
             // پرسیدن نام خانواده
@@ -380,6 +372,11 @@ namespace ir.EmIT.TeleZanbil
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.ShowHelp, async (PostFunctionData pfd) =>
+            {
+                await showZanbilContentAsync(pfd);
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.ShowAboutA, async (PostFunctionData pfd) =>
             {
                 await showZanbilContentAsync(pfd);
             });
@@ -542,7 +539,8 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.Config, async (PostFunctionData pfd) =>
             {
-                await bot.SendTextMessageAsync(pfd.target, "................⚙️ تنظیمات ⚙️................", replyMarkup: makeConfigKeyboard());
+                Message m2 = await bot.SendTextMessageAsync(pfd.target, "................⚙️ تنظیمات ⚙️................", replyMarkup: makeConfigKeyboard());
+                currentTZSessionData.lastKeyboardId = m2.MessageId;
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowHelp, async (PostFunctionData pfd) =>
@@ -551,6 +549,11 @@ namespace ir.EmIT.TeleZanbil
                     await showHelpForFatherAsync(pfd);
                 else
                     await showHelpForNormalAsync(pfd);
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.ShowAboutA, async (PostFunctionData pfd) =>
+            {
+                await showAboutAsync(pfd);
             });
 
             //nfa.addRulePostFunction(TeleZanbilStates.GetMainCommand, (PostFunctionData pfd) =>
@@ -738,10 +741,14 @@ namespace ir.EmIT.TeleZanbil
 
         private async Task showZanbilContentAsync(PostFunctionData pfd)
         {
-            if (currentTZSessionData.lastMsgId != 0)
+            if (currentTZSessionData.lastKeyboardId != 0)
             {
-                // حذف کیبورد قبلی
-                await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastMsgId);
+                try
+                {
+                    // حذف کیبورد قبلی
+                    await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastKeyboardId);
+                }
+                catch (Exception ex) { }
             }
 
             // بدست آوردن محتوی زنبیل در قالب یک کیبورد
@@ -749,7 +756,7 @@ namespace ir.EmIT.TeleZanbil
 
             // نمایش پیام و کیبورد لیست آیتم های زنبیل
             Message keyboardMsg = await bot.SendTextMessageAsync(pfd.target, "....🛍 زنبیل خانواده «" + currentTZSessionData.family.FamilyName + "» 🛍....", replyMarkup: zanbilContentKeyboard);
-            currentTZSessionData.lastMsgId = keyboardMsg.MessageId;
+            currentTZSessionData.lastKeyboardId = keyboardMsg.MessageId;
         }
 
         private async Task showHelpForFatherAsync(PostFunctionData pfd)
@@ -780,16 +787,44 @@ namespace ir.EmIT.TeleZanbil
         private async Task showInviteCode(PostFunctionData pfd)
         {
             await bot.SendTextMessageAsync(pfd.target,
-                    "..................🛍 تله زنبیل 🛍.................." + "\n" +
-                    "🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟" + "\n\n" +
-                    "کد دعوت 👨‍👩‍👧‍👧 خانواده «" + currentTZSessionData.family.FamilyName + "»:" + "\n" +
-                    currentTZSessionData.family.InviteCode + "\n" +
-                    "〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰〰️〰️" + "\n" +
-                    "برای دعوت از سایر اعضای خانواده خود، این کد دعوت را برای آن ها بفرستید" + "\n" +
-                    "🛍 تله زنبیل، زنبیل تلگرامی خانواده 🛍" + "\n" +
-                    "@TeleZanbilBot"
-                    );
+                "..................🛍 تله زنبیل 🛍.................." + "\n" +
+                "🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟" + "\n\n" +
+                "کد دعوت 👨‍👩‍👧‍👧 خانواده «" + currentTZSessionData.family.FamilyName + "»:" + "\n" +
+                currentTZSessionData.family.InviteCode + "\n" +
+                "〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰〰️〰️" + "\n" +
+                "برای دعوت از سایر اعضای خانواده خود، این کد دعوت را برای آن ها بفرستید" + "\n" +
+                "🛍 تله زنبیل، زنبیل تلگرامی خانواده 🛍" + "\n" +
+                "@TeleZanbilBot"
+                );
         }
+
+        private async Task showAboutAsync(PostFunctionData pfd)
+        {
+            if (currentTZSessionData.lastKeyboardId != 0)
+            {
+                try
+                {
+                    // حذف کیبورد قبلی
+                    await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastKeyboardId);
+                }
+                catch (Exception ex) { }
+                currentTZSessionData.lastKeyboardId = 0;
+            }
+
+            //todo: imp: تکمیل عکس درباره ما
+            await bot.SendPhotoAsync(pfd.target,
+                new FileToSend("AboutPoster", new FileStream("Images\\AboutZanbil.png", FileMode.Open)),
+                "..................🛍 تله زنبیل 🛍.................." + "\n" +
+                "💥 زنبیل تلگرامی خانواده 💥" + "\n" +
+                "🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟" + "\n" +
+                "با استفاده از تله زنبیل می توانید لیست خرید خود و خانواده تان را مدیریت کنید" + "\n" +
+                "🔸🔹🔸🔹🔸🔹🔸🔹🔸🔹🔸" + "\n" +
+                "بات : @TeleZanbilBot" + "\n" +
+                "کانال : @TeleZanbil" + "\n" +
+                "مدیر : @Em_IT"
+                );
+        }
+
 
         #endregion
     }
