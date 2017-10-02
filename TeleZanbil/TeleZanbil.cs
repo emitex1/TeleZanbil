@@ -13,7 +13,6 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
-        //todo: imp: دکمه راهنما
         //todo: imp: امکان خروج از سیستم
         //todo: imp: خروج اعضا به راحتی با حذف کاربر
         //todo: imp: خروج پدر هم با حذف منطقی همه چیز باشد
@@ -238,6 +237,8 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRule(TeleZanbilStates.Config, "logout", TeleZanbilStates.Logout);
             nfa.addRule(TeleZanbilStates.Config, "about", TeleZanbilStates.ShowAboutA);
 
+            nfa.addRule(TeleZanbilStates.ShowHelp, TeleZanbilStates.ShowZanbilContent);
+
             /*
             ShowAdminMenu
             */
@@ -376,7 +377,12 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.RefreshZanbil, async (PostFunctionData pfd) =>
             {
                 await showZanbilContentAsync(pfd);
-            });            
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.ShowZanbilContent, TeleZanbilStates.ShowHelp, async (PostFunctionData pfd) =>
+            {
+                await showZanbilContentAsync(pfd);
+            });
 
             nfa.addRulePostFunction(TeleZanbilStates.CheckAcceptZanbilItemPermission, (PostFunctionData pfd) =>
             {
@@ -537,6 +543,14 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRulePostFunction(TeleZanbilStates.Config, async (PostFunctionData pfd) =>
             {
                 await bot.SendTextMessageAsync(pfd.target, "................⚙️ تنظیمات ⚙️................", replyMarkup: makeConfigKeyboard());
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.ShowHelp, async (PostFunctionData pfd) =>
+            {
+                if(currentTZSessionData.userRole.Equals("Father"))
+                    await showHelpForFatherAsync(pfd);
+                else
+                    await showHelpForNormalAsync(pfd);
             });
 
             //nfa.addRulePostFunction(TeleZanbilStates.GetMainCommand, (PostFunctionData pfd) =>
