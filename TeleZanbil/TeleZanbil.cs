@@ -18,6 +18,7 @@ namespace ir.EmIT.TeleZanbil
         //todo: imp: خروج اعضا به راحتی با حذف کاربر
         //todo: imp: خروج پدر هم با حذف منطقی همه چیز باشد
         //todo: imp: دکمه بازگشت از بخش ورود به سیستم
+        //todo: imp: دکمه بازگشت از بخش تنظیمات
         //todo: imp: تست همزمان دو کاربر
         //todo: imp: کانفیگ تغییر زبان به کرمونی
         //todo: imp: دیدن لیست خانواده
@@ -535,7 +536,7 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.Config, async (PostFunctionData pfd) =>
             {
-                await bot.SendTextMessageAsync(pfd.target, "⚙️ تنظیمات ⚙️", replyMarkup: makeConfigKeyboard());
+                await bot.SendTextMessageAsync(pfd.target, "................⚙️ تنظیمات ⚙️................", replyMarkup: makeConfigKeyboard());
             });
 
             //nfa.addRulePostFunction(TeleZanbilStates.GetMainCommand, (PostFunctionData pfd) =>
@@ -733,7 +734,7 @@ namespace ir.EmIT.TeleZanbil
             InlineKeyboardMarkup zanbilContentKeyboard = makeZanbilContentKeyboard();
 
             // نمایش پیام و کیبورد لیست آیتم های زنبیل
-            Message keyboardMsg = await bot.SendTextMessageAsync(pfd.target, "🛍 زنبیل خانواده «" + currentTZSessionData.family.FamilyName + "»", replyMarkup: zanbilContentKeyboard);
+            Message keyboardMsg = await bot.SendTextMessageAsync(pfd.target, "....🛍 زنبیل خانواده «" + currentTZSessionData.family.FamilyName + "» 🛍....", replyMarkup: zanbilContentKeyboard);
             currentTZSessionData.lastMsgId = keyboardMsg.MessageId;
         }
 
