@@ -13,7 +13,6 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
-        //todo: imp: نمایش پیام مبنی بر خالی بودن زنبیل
         //todo: imp: دکمه راهنما
         //todo: imp: امکان خروج از سیستم
         //todo: imp: خروج اعضا به راحتی با حذف کاربر
@@ -207,6 +206,7 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "add", TeleZanbilStates.AddNewZanbilItem);
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "refresh", TeleZanbilStates.RefreshZanbil);
             nfa.addRule(TeleZanbilStates.ShowZanbilContent, "config", TeleZanbilStates.Config);
+            nfa.addRule(TeleZanbilStates.ShowZanbilContent, "-1", TeleZanbilStates.ShowZanbilContent);
             nfa.addRegexRule(TeleZanbilStates.ShowZanbilContent, "[0-9]+", TeleZanbilStates.CheckAcceptZanbilItemPermission);
 
             nfa.addRule(TeleZanbilStates.RefreshZanbil, TeleZanbilStates.ShowZanbilContent);
@@ -572,41 +572,54 @@ namespace ir.EmIT.TeleZanbil
             var zanbilItems = tzdb.ZanbilItems.Where(zi => zi.Zanbil.ZanbilId == mainZanbil.ZanbilId && zi.IsBought == false);
             int ziCount = zanbilItems.Count();
 
-            string[][][] zanbilItemsTitle;
-            zanbilItemsTitle = new string[ziCount + 1][][];
+            string[][][] zanbilItemsData;
+            if(ziCount == 0)
+                zanbilItemsData = new string[2][][];
+            else
+                zanbilItemsData = new string[ziCount + 1][][];
 
             // ساخت لیست رشته شامل معرفی آیتم های زنبیل
             int i;
             for (i = 0; i < ziCount; i++)
             {
-                zanbilItemsTitle[i] = new string[1][];
-                zanbilItemsTitle[i][0] = new string[2];
+                zanbilItemsData[i] = new string[1][];
+                zanbilItemsData[i][0] = new string[2];
                 ZanbilItem zi = zanbilItems.ToArray<ZanbilItem>()[i];
-                zanbilItemsTitle[i][0][1] = (i + 1).ToString();
-                zanbilItemsTitle[i][0][0] = zi.ItemTitle + " (" + zi.ItemAmount + " " + zi.ItemUnit.Title + ")";
+                zanbilItemsData[i][0][0] = zi.ItemTitle + " (" + zi.ItemAmount + " " + zi.ItemUnit.Title + ")";
+                zanbilItemsData[i][0][1] = (i + 1).ToString();
             }
 
-            i = ziCount;
-            zanbilItemsTitle[i] = new string[3][];
-            zanbilItemsTitle[i][0] = new string[2];
-            zanbilItemsTitle[i][1] = new string[2];
-            zanbilItemsTitle[i][2] = new string[2];
+            if (ziCount == 0)
+            {
+                zanbilItemsData[0] = new string[1][];
+                zanbilItemsData[0][0] = new string[2];
+                zanbilItemsData[0][0][0] = "«زنبیل شما خالی است»";
+                zanbilItemsData[0][0][1] = "-1";
+
+                i++;
+            }
+
+            //i = ziCount;
+            zanbilItemsData[i] = new string[3][];
+            zanbilItemsData[i][0] = new string[2];
+            zanbilItemsData[i][1] = new string[2];
+            zanbilItemsData[i][2] = new string[2];
 
             // دکمه افزودن کالای جدید
-            zanbilItemsTitle[i][0][1] = "add";
-            zanbilItemsTitle[i][0][0] = "✏️ افزودن";
+            zanbilItemsData[i][0][0] = "✏️ افزودن";
+            zanbilItemsData[i][0][1] = "add";
 
             // دکمه رفرش
-            zanbilItemsTitle[i][1][1] = "refresh";
-            zanbilItemsTitle[i][1][0] = "💥 رفرش";
+            zanbilItemsData[i][1][0] = "💥 رفرش";
+            zanbilItemsData[i][1][1] = "refresh";
 
             // دکمه کانفیگ
-            zanbilItemsTitle[i][2][1] = "config";
-            zanbilItemsTitle[i][2][0] = "⚙️ تنظیمات";
+            zanbilItemsData[i][2][0] = "⚙️ تنظیمات";
+            zanbilItemsData[i][2][1] = "config";
 
 
             // ساخت کیبورد عمودی با استفاده از لیست آیتم های زنبیل
-            InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeKeyboard(zanbilItemsTitle);
+            InlineKeyboardMarkup zanbilContentKeyboard = KeyboardGenerator.makeKeyboard(zanbilItemsData);
 
             return zanbilContentKeyboard;
         }
