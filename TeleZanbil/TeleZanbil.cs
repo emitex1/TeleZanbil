@@ -13,10 +13,6 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
-        //todo: imp: امکان خروج از سیستم
-        //todo: imp: خروج اعضا به راحتی با حذف کاربر
-        //todo: imp: خروج پدر هم با حذف منطقی همه چیز باشد
-
         //todo: imp: دیدن مشخصات خانواده
         //todo: imp: دکمه بازگشت از بخش ورود به سیستم
         //todo: imp: دکمه بازگشت از بخش تنظیمات
@@ -24,6 +20,7 @@ namespace ir.EmIT.TeleZanbil
 
         //todo: imp: همیشه پس از کلیک روی دکمه ها، آن صفحه کلید حذف شده و لاگ آن بماند
         //todo: imp: امکان نگه داری لیستی از شماره کیبوردها برای حذف
+        //todo: imp: ذخیره سشن های موردنیاز کاربر، برای زمانی که بات استاپ شود
 
         //todo: کانفیگ تغییر زبان به کرمونی
         //todo: امکان دعوت از دیگران با ارسال کد
@@ -70,7 +67,7 @@ namespace ir.EmIT.TeleZanbil
             public static BotState ShowAboutA = new BotState(31, "نمایش درباره تله زنبیل a");
             public static BotState ShowFamilyList = new BotState(32, "نمایش لیست خانواده");
             public static BotState ShowHelp = new BotState(33, "نمایش راهنما");
-            public static BotState Logout = new BotState(34, "خروج از سیستم");
+            public static BotState AskLogout = new BotState(34, "پرسیدن سوال خروج از سیستم");
             public static BotState AskHistoryType = new BotState(35, "پرسیدن نوع  نمایش سابقه زنبیل");
             public static BotState Config = new BotState(38, "نمایش صفحه کانفیگ");
 
@@ -95,6 +92,9 @@ namespace ir.EmIT.TeleZanbil
             public static BotState ChangeLanguage = new BotState(40, "تغییر زبان");
             public static BotState AskKeyboardPlace = new BotState(41, "نمایش صفحه تغییر محل دکمه ها");
             public static BotState ChangeKeyboardPlace = new BotState(42, "تغییر محل دکمه ها");
+
+            // خروج از سیستم
+            public static BotState Logout = new BotState(43, "خروج از سیستم");
 
             // مدیریت سیستم
             public static BotState ShowAdminMenu = new BotState(30, "نمایش منوی مدیر سیستم");
@@ -236,11 +236,16 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRule(TeleZanbilStates.Config, "language", TeleZanbilStates.AskLanguage);
             nfa.addRule(TeleZanbilStates.Config, "keyboardPlace", TeleZanbilStates.AskKeyboardPlace);
             nfa.addRule(TeleZanbilStates.Config, "help", TeleZanbilStates.ShowHelp);
-            nfa.addRule(TeleZanbilStates.Config, "logout", TeleZanbilStates.Logout);
+            nfa.addRule(TeleZanbilStates.Config, "logout", TeleZanbilStates.AskLogout);
             nfa.addRule(TeleZanbilStates.Config, "about", TeleZanbilStates.ShowAboutA);
 
             nfa.addRule(TeleZanbilStates.ShowHelp, TeleZanbilStates.ShowZanbilContent);
             nfa.addRule(TeleZanbilStates.ShowAboutA, TeleZanbilStates.ShowZanbilContent);
+
+            nfa.addRule(TeleZanbilStates.AskLogout, "yes", TeleZanbilStates.Logout);
+            nfa.addElseRule(TeleZanbilStates.AskLogout, TeleZanbilStates.ShowZanbilContent);
+
+            nfa.addRule(TeleZanbilStates.Logout, TeleZanbilStates.GetMainCommand);
 
             /*
             ShowAdminMenu
@@ -554,6 +559,24 @@ namespace ir.EmIT.TeleZanbil
             nfa.addRulePostFunction(TeleZanbilStates.ShowAboutA, async (PostFunctionData pfd) =>
             {
                 await showAboutAsync(pfd);
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.AskLogout, async (PostFunctionData pfd) =>
+            {
+                InlineKeyboardMarkup yesNoKeyboard = KeyboardGenerator.makeYesNoKeybaord(yesTitle: "بله 🖐");
+                await bot.SendTextMessageAsync(pfd.target, "آیا مایل به خروج 😨 از خانواده «" + currentTZSessionData.family.FamilyName + "» می باشید؟", replyMarkup: yesNoKeyboard);
+            });
+
+            nfa.addRulePostFunction(TeleZanbilStates.Logout, async (PostFunctionData pfd) =>
+            {
+                if(currentTZSessionData.userRole.Equals("Father"))
+                {
+                    tzdb.Families.Where(f => f.FamilyId == currentTZSessionData.family.FamilyId).First().IsDeleted = true;
+                }
+                tzdb.Users.Where(u => u.TelegramUserID == currentTZSessionData.telegramUserID).First().IsDeleted = true;
+                tzdb.SaveChanges();
+
+                await bot.SendTextMessageAsync(pfd.target, "شما از خانواده «" + currentTZSessionData.family.FamilyName + "» خارج شدید 😱🖐");
             });
 
             //nfa.addRulePostFunction(TeleZanbilStates.GetMainCommand, (PostFunctionData pfd) =>
