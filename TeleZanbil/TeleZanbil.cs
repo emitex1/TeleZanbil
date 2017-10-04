@@ -13,13 +13,12 @@ namespace ir.EmIT.TeleZanbil
 {
     class TeleZanbil : EmITBotNetBase
     {
-        //todo: imp: دیدن مشخصات خانواده
+        //todo: دیدن مشخصات خانواده
         //todo: imp: دکمه بازگشت از بخش ورود به سیستم
-        //todo: imp: دکمه بازگشت از بخش تنظیمات
-        //todo: imp: تست همزمان دو کاربر
+        //todo: دکمه بازگشت از بخش تنظیمات
 
-        //todo: imp: همیشه پس از کلیک روی دکمه ها، آن صفحه کلید حذف شده و لاگ آن بماند
-        //todo: imp: امکان نگه داری لیستی از شماره کیبوردها برای حذف
+        //todo: imp: تست همزمان دو کاربر
+        //todo: imp: رفع مشکل توقف 45 ثانیه ای
         //todo: imp: ذخیره سشن های موردنیاز کاربر، برای زمانی که بات استاپ شود
 
         //todo: کانفیگ تغییر زبان به کرمونی
@@ -110,8 +109,6 @@ namespace ir.EmIT.TeleZanbil
 
             public Family family;
             public string userRole;
-
-            public int lastKeyboardId;
 
             public int zanbilItemNo;
 
@@ -300,20 +297,22 @@ namespace ir.EmIT.TeleZanbil
                     "پیوستن به خانواده 🚶",
                     "درباره 💡 تله زنبیل"
                 }, 2, false);
-                Message m2 = await bot.SendTextMessageAsync(pfd.target, "لطفاً انتخاب کنید", replyMarkup: mainKeyboard);
-                currentTZSessionData.lastKeyboardId = m2.MessageId;
+                Message resultMsg = await bot.SendTextMessageAsync(pfd.target, "لطفاً انتخاب کنید", replyMarkup: mainKeyboard);
+                saveKeyboardID(resultMsg.MessageId);
             });
 
             // نمایش درباره ما
             nfa.addRulePostFunction(TeleZanbilStates.ShowAboutUs, async (PostFunctionData pfd) =>
             {
+                deleteAllPreKeyboards(pfd.target);
                 await showAboutAsync(pfd);
             });
 
             // پرسیدن نام خانواده
             nfa.addRulePostFunction(TeleZanbilStates.GetFamilyName, async (PostFunctionData pfd) =>
             {
-                await bot.SendTextMessageAsync(pfd.target, "لطفاً نام خانواده 👨‍👩‍👧‍👧 خود را وارد نمائید");
+                Message resultMsg = await bot.SendTextMessageAsync(pfd.target, "لطفاً نام خانواده 👨‍👩‍👧‍👧 خود را وارد نمائید");
+                saveKeyboardID(resultMsg.MessageId);
             });
 
             // ثبت خانواده
@@ -413,18 +412,21 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.GetZanbilItemName, async (PostFunctionData pfd) =>
             {
-                await bot.SendTextMessageAsync(pfd.target, "لطفاً نام کالای درخواستی 🛒 را وارد نمائید");
+                Message resultMsg = await bot.SendTextMessageAsync(pfd.target, "لطفاً نام کالای درخواستی 🛒 را وارد نمائید");
+                saveKeyboardID(resultMsg.MessageId);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.GetZanbilItemAmount, async (PostFunctionData pfd) =>
             {
                 // گرفتن اسم کالای درخواستی از مرحله قبل
                 currentTZSessionData.zanbilItemName = pfd.action;
+                saveKeyboardID(pfd.m.MessageId);
 
                 // نمایش لیست و درخواست ورود مقدار کالای درخواستی
                 //todo: imp: کیبورد شامل ربع و نیم و ضرایب 10 هم باشد
                 InlineKeyboardMarkup numberKeyboard = KeyboardGenerator.makeNumberMatrixKeyboard(1, 9, 3);
-                await bot.SendTextMessageAsync(pfd.target, "لطفاً مقدار کالای درخواستی 🛒 را انتخاب کنید یا در صورت نیاز مقدار دقیق آن را وارد نمائید", replyMarkup: numberKeyboard);
+                Message resultMsg = await bot.SendTextMessageAsync(pfd.target, "لطفاً مقدار کالای درخواستی 🛒 را انتخاب کنید یا در صورت نیاز مقدار دقیق آن را وارد نمائید", replyMarkup: numberKeyboard);
+                saveKeyboardID(resultMsg.MessageId);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.GetZanbilItemUnit, async (PostFunctionData pfd) =>
@@ -442,7 +444,8 @@ namespace ir.EmIT.TeleZanbil
                 //todo: کیبورد راست به چپ باشد
                 InlineKeyboardMarkup unitsKeyboard = KeyboardGenerator.makeKeyboard(unitNamesStr, 4, false, unitNamesStr);
                     
-                await bot.SendTextMessageAsync(pfd.target, "لطفاً واحد کالای درخواستی 🛒 را انتخاب یا یا در صورت عدم وجود در لیست نام دقیق آن را وارد نمائید", replyMarkup: unitsKeyboard);
+                Message resultMsg = await bot.SendTextMessageAsync(pfd.target, "لطفاً واحد کالای درخواستی 🛒 را انتخاب یا یا در صورت عدم وجود در لیست نام دقیق آن را وارد نمائید", replyMarkup: unitsKeyboard);
+                saveKeyboardID(resultMsg.MessageId);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.SaveZanbilItem, async (PostFunctionData pfd) =>
@@ -464,7 +467,7 @@ namespace ir.EmIT.TeleZanbil
                 tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = currentTZSessionData.zanbilItemName, ItemAmount = currentTZSessionData.zanbilItemAmount, Zanbil = mainZanbil, IsBought = false, ItemUnit = unit, BuyDate = DateTime.Now, CreatorUserID = userID });
                 tzdb.SaveChanges();
 
-                //todo: imp: حذف همه پیام های در حین افزودن کالا به زنبیل
+                deleteAllPreKeyboards(pfd.target);
                 await bot.SendTextMessageAsync(pfd.target, "«" + currentTZSessionData.zanbilItemAmount + " " + currentTZSessionData.zanbilItemUnit + " " + currentTZSessionData.zanbilItemName + "» 🛒 به زنبیل خانواده شما اضافه شد 👌");
             });
 
@@ -475,7 +478,8 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.Login, async (PostFunctionData pfd) =>
             {
-                await bot.SendTextMessageAsync(pfd.target, "لطفاً کد ورودی خود را وارد فرمائید");
+                Message resultMsg = await bot.SendTextMessageAsync(pfd.target, "لطفاً کد ورودی خود را وارد فرمائید");
+                saveKeyboardID(resultMsg.MessageId);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.GetInputCode, (PostFunctionData pfd) =>
@@ -499,6 +503,8 @@ namespace ir.EmIT.TeleZanbil
                     currentTZSessionData.family = families.First();
                     currentTZSessionData.telegramUserID = pfd.m.From.Id;
                     currentTZSessionData.userRole = "Normal";
+
+                    deleteAllPreKeyboards(pfd.target);
 
                     actUsingCustomAction(pfd.m, "1");
                 }
@@ -544,8 +550,8 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.Config, async (PostFunctionData pfd) =>
             {
-                Message m2 = await bot.SendTextMessageAsync(pfd.target, "................⚙️ تنظیمات ⚙️................", replyMarkup: makeConfigKeyboard());
-                currentTZSessionData.lastKeyboardId = m2.MessageId;
+                Message resultMsg = await bot.SendTextMessageAsync(pfd.target, "................⚙️ تنظیمات ⚙️................", replyMarkup: makeConfigKeyboard());
+                saveKeyboardID(resultMsg.MessageId);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowHelp, async (PostFunctionData pfd) =>
@@ -764,22 +770,14 @@ namespace ir.EmIT.TeleZanbil
 
         private async Task showZanbilContentAsync(PostFunctionData pfd)
         {
-            if (currentTZSessionData.lastKeyboardId != 0)
-            {
-                try
-                {
-                    // حذف کیبورد قبلی
-                    await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastKeyboardId);
-                }
-                catch (Exception ex) { }
-            }
+            deleteAllPreKeyboards(pfd.target);
 
             // بدست آوردن محتوی زنبیل در قالب یک کیبورد
             InlineKeyboardMarkup zanbilContentKeyboard = makeZanbilContentKeyboard();
 
             // نمایش پیام و کیبورد لیست آیتم های زنبیل
-            Message keyboardMsg = await bot.SendTextMessageAsync(pfd.target, "....🛍 زنبیل خانواده «" + currentTZSessionData.family.FamilyName + "» 🛍....", replyMarkup: zanbilContentKeyboard);
-            currentTZSessionData.lastKeyboardId = keyboardMsg.MessageId;
+            Message resultMsg = await bot.SendTextMessageAsync(pfd.target, "....🛍 زنبیل خانواده «" + currentTZSessionData.family.FamilyName + "» 🛍....", replyMarkup: zanbilContentKeyboard);
+            saveKeyboardID(resultMsg.MessageId);
         }
 
         private async Task showHelpForFatherAsync(PostFunctionData pfd)
@@ -823,16 +821,7 @@ namespace ir.EmIT.TeleZanbil
 
         private async Task showAboutAsync(PostFunctionData pfd)
         {
-            if (currentTZSessionData.lastKeyboardId != 0)
-            {
-                try
-                {
-                    // حذف کیبورد قبلی
-                    await bot.DeleteMessageAsync(pfd.target, currentTZSessionData.lastKeyboardId);
-                }
-                catch (Exception ex) { }
-                currentTZSessionData.lastKeyboardId = 0;
-            }
+            deleteAllPreKeyboards(pfd.target);
 
             //todo: imp: تکمیل عکس درباره ما
             await bot.SendPhotoAsync(pfd.target,
