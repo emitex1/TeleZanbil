@@ -113,7 +113,7 @@ namespace ir.EmIT.TeleZanbil
             public int zanbilItemNo;
 
             public string zanbilItemName;
-            public int zanbilItemAmount;
+            public double zanbilItemAmount;
             public string zanbilItemUnit;
 
             public string inputCode;
@@ -213,7 +213,7 @@ namespace ir.EmIT.TeleZanbil
             //todo: سه مرحله دریافت اطلاعات هرکدام تقسیم شوند به دو مرحله نمایش پیام و دریافت مقدار
             nfa.addRule(TeleZanbilStates.AddNewZanbilItem, TeleZanbilStates.GetZanbilItemName);
             nfa.addRegexRule(TeleZanbilStates.GetZanbilItemName, ".*", TeleZanbilStates.GetZanbilItemAmount);
-            nfa.addRegexRule(TeleZanbilStates.GetZanbilItemAmount, "[0-9]+", TeleZanbilStates.GetZanbilItemUnit);
+            nfa.addRegexRule(TeleZanbilStates.GetZanbilItemAmount, "[1-9][0-9]*(\\.[0-9]+)?", TeleZanbilStates.GetZanbilItemUnit);
             nfa.addRegexRule(TeleZanbilStates.GetZanbilItemUnit, ".+", TeleZanbilStates.SaveZanbilItem);
             nfa.addRule(TeleZanbilStates.SaveZanbilItem, TeleZanbilStates.ShowZanbilContent);
 
@@ -304,7 +304,7 @@ namespace ir.EmIT.TeleZanbil
             // نمایش درباره ما
             nfa.addRulePostFunction(TeleZanbilStates.ShowAboutUs, async (PostFunctionData pfd) =>
             {
-                deleteAllPreKeyboards(pfd.target);
+                await deleteAllPreKeyboards(pfd.target);
                 await showAboutAsync(pfd);
             });
 
@@ -423,8 +423,32 @@ namespace ir.EmIT.TeleZanbil
                 saveKeyboardID(pfd.m.MessageId);
 
                 // نمایش لیست و درخواست ورود مقدار کالای درخواستی
-                //todo: imp: کیبورد شامل ربع و نیم و ضرایب 10 هم باشد
-                InlineKeyboardMarkup numberKeyboard = KeyboardGenerator.makeNumberMatrixKeyboard(1, 9, 3);
+                string[] units = new string[20] {
+                    "0.9","0.75","نیم", "ربع", "0.1",
+                    "پنج", "چهار", "سه", "دو", "یک",
+                    "ده", "نه", "هشت", "هفت", "شش",
+                    "100","50", "40", "30", "20"
+                };
+                string[] unitsData = new string[20] {
+                    "0.9", "0.75", "0.5", "0.25", "0.1",
+                    "5", "4", "3", "2", "1",
+                    "10", "9", "8", "7", "6",
+                    "100", "50", "40", "30", "20"
+                };
+
+                /*string[][] unitsData = new string[4][];
+                unitsData[0] = new string[5] { "0.1", "0.25", "0.5", "0.75", "0.9" };
+                unitsData[1] = new string[5] { "1", "2", "3", "4", "5" };
+                unitsData[2] = new string[5] { "6", "7", "8", "9", "10" };
+                unitsData[3] = new string[5] { "20", "30", "40", "50", "60" };
+
+                string[][] units = new string[4][];
+                units[0] = new string[5] { "0.1", "ربع", "نیم", "0.75", "0.9" };
+                units[1] = new string[5] { "یک", "دو", "سه", "چهار", "پنج" };
+                units[2] = new string[5] { "6", "7", "8", "9", "10" };
+                units[3] = new string[5] { "20", "30", "40", "50", "60" };*/
+                //InlineKeyboardMarkup numberKeyboard = KeyboardGenerator.makeNumberMatrixKeyboard(1, 9, 3);
+                InlineKeyboardMarkup numberKeyboard = KeyboardGenerator.makeKeyboard(units,5, false, unitsData);
                 Message resultMsg = await bot.SendTextMessageAsync(pfd.target, "لطفاً مقدار کالای درخواستی 🛒 را انتخاب کنید یا در صورت نیاز مقدار دقیق آن را وارد نمائید", replyMarkup: numberKeyboard);
                 saveKeyboardID(resultMsg.MessageId);
             });
@@ -433,7 +457,7 @@ namespace ir.EmIT.TeleZanbil
             {
                 //todo: imp: امکان ثبت اعداد اعشار
                 // گرفتن مقدار کالای درخواستی از مرحله قبل
-                currentTZSessionData.zanbilItemAmount = Convert.ToInt32(pfd.action);
+                currentTZSessionData.zanbilItemAmount = Convert.ToDouble(pfd.action);
 
                 var unitNames = tzdb.Units.Select(u => u.Title);
                 string[] unitNamesStr = new string[unitNames.Count()];
@@ -467,7 +491,7 @@ namespace ir.EmIT.TeleZanbil
                 tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = currentTZSessionData.zanbilItemName, ItemAmount = currentTZSessionData.zanbilItemAmount, Zanbil = mainZanbil, IsBought = false, ItemUnit = unit, BuyDate = DateTime.Now, CreatorUserID = userID });
                 tzdb.SaveChanges();
 
-                deleteAllPreKeyboards(pfd.target);
+                await deleteAllPreKeyboards(pfd.target);
                 await bot.SendTextMessageAsync(pfd.target, "«" + currentTZSessionData.zanbilItemAmount + " " + currentTZSessionData.zanbilItemUnit + " " + currentTZSessionData.zanbilItemName + "» 🛒 به زنبیل خانواده شما اضافه شد 👌");
             });
 
@@ -487,7 +511,7 @@ namespace ir.EmIT.TeleZanbil
                 currentTZSessionData.inputCode = pfd.action;
             });
 
-            nfa.addRulePostFunction(TeleZanbilStates.CheckInputCode, (PostFunctionData pfd) =>
+            nfa.addRulePostFunction(TeleZanbilStates.CheckInputCode, async (PostFunctionData pfd) =>
             {
                 var families = tzdb.Families.Where(f => f.InviteCode.Equals(currentTZSessionData.inputCode) && f.IsDeleted == false);
                 if(families.Count() == 0)
@@ -504,7 +528,7 @@ namespace ir.EmIT.TeleZanbil
                     currentTZSessionData.telegramUserID = pfd.m.From.Id;
                     currentTZSessionData.userRole = "Normal";
 
-                    deleteAllPreKeyboards(pfd.target);
+                    await deleteAllPreKeyboards(pfd.target);
 
                     actUsingCustomAction(pfd.m, "1");
                 }
@@ -770,7 +794,7 @@ namespace ir.EmIT.TeleZanbil
 
         private async Task showZanbilContentAsync(PostFunctionData pfd)
         {
-            deleteAllPreKeyboards(pfd.target);
+            await deleteAllPreKeyboards(pfd.target);
 
             // بدست آوردن محتوی زنبیل در قالب یک کیبورد
             InlineKeyboardMarkup zanbilContentKeyboard = makeZanbilContentKeyboard();
@@ -821,7 +845,7 @@ namespace ir.EmIT.TeleZanbil
 
         private async Task showAboutAsync(PostFunctionData pfd)
         {
-            deleteAllPreKeyboards(pfd.target);
+            await deleteAllPreKeyboards(pfd.target);
 
             //todo: imp: تکمیل عکس درباره ما
             await bot.SendPhotoAsync(pfd.target,
