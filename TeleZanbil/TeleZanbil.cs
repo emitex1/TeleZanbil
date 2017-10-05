@@ -304,7 +304,7 @@ namespace ir.EmIT.TeleZanbil
             // نمایش درباره ما
             nfa.addRulePostFunction(TeleZanbilStates.ShowAboutUs, async (PostFunctionData pfd) =>
             {
-                await deleteAllPreKeyboards(pfd.target);
+                //await deleteAllPreKeyboards(pfd.target);
                 await showAboutAsync(pfd);
             });
 
@@ -490,8 +490,8 @@ namespace ir.EmIT.TeleZanbil
                 tzdb.ZanbilItems.Add(new ZanbilItem() { ItemTitle = currentTZSessionData.zanbilItemName, ItemAmount = currentTZSessionData.zanbilItemAmount, Zanbil = mainZanbil, IsBought = false, ItemUnit = unit, BuyDate = DateTime.Now, CreatorUserID = userID });
                 tzdb.SaveChanges();
 
-                await deleteAllPreKeyboards(pfd.target);
                 await bot.SendTextMessageAsync(pfd.target, "«" + currentTZSessionData.zanbilItemAmount + " " + currentTZSessionData.zanbilItemUnit + " " + currentTZSessionData.zanbilItemName + "» 🛒 به زنبیل خانواده شما اضافه شد 👌");
+                await deleteAllPreKeyboards(pfd.target);
             });
 
             nfa.addRulePostFunction(TeleZanbilStates.ShowAdminMenu, TeleZanbilStates.CheckUserType, async (PostFunctionData pfd) =>
@@ -793,13 +793,14 @@ namespace ir.EmIT.TeleZanbil
 
         private async Task showZanbilContentAsync(PostFunctionData pfd)
         {
-            await deleteAllPreKeyboards(pfd.target);
+            
 
             // بدست آوردن محتوی زنبیل در قالب یک کیبورد
             InlineKeyboardMarkup zanbilContentKeyboard = makeZanbilContentKeyboard();
 
             // نمایش پیام و کیبورد لیست آیتم های زنبیل
             Message resultMsg = await bot.SendTextMessageAsync(pfd.target, "....🛍 زنبیل خانواده «" + currentTZSessionData.family.FamilyName + "» 🛍....", replyMarkup: zanbilContentKeyboard);
+            await deleteAllPreKeyboards(pfd.target);
             saveKeyboardID(resultMsg.MessageId);
         }
 
@@ -844,20 +845,20 @@ namespace ir.EmIT.TeleZanbil
 
         private async Task showAboutAsync(PostFunctionData pfd)
         {
-            await deleteAllPreKeyboards(pfd.target);
-
             //todo: imp: تکمیل عکس درباره ما
             await bot.SendPhotoAsync(pfd.target,
                 new FileToSend("AboutPoster", new FileStream("Images\\AboutZanbil.png", FileMode.Open)),
-                "..................🛍 تله زنبیل 🛍.................." + "\n" +
+                "..........🛍 تله زنبیل 🛍.........." + "\n" +
                 "💥 زنبیل تلگرامی خانواده 💥" + "\n" +
-                "🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟" + "\n" +
-                "با استفاده از تله زنبیل می توانید لیست خرید خود و خانواده تان را مدیریت کنید" + "\n" +
-                "🔸🔹🔸🔹🔸🔹🔸🔹🔸🔹🔸" + "\n" +
-                "بات : @TeleZanbilBot" + "\n" +
-                "کانال : @TeleZanbil" + "\n" +
-                "مدیر : @Em_IT"
-                );
+                "🌟⚡️🌟⚡️🌟⚡️🌟⚡️🌟" + "\n" +
+                "با استفاده از تله زنبیل میتوانید لیست خرید خانواده را مدیریت کنید" + "\n" +
+                "🔸🔹🔸🔹🔸🔹🔸" + "\n" +
+                "بات: @TeleZanbilBot" + "\n" +
+                "کانال: @TeleZanbil" + "\n" +
+                "مدیر: @Em_IT"
+            );
+
+            await deleteAllPreKeyboards(pfd.target);
         }
 
 
