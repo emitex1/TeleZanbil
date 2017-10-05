@@ -455,9 +455,8 @@ namespace ir.EmIT.TeleZanbil
 
             nfa.addRulePostFunction(TeleZanbilStates.GetZanbilItemUnit, async (PostFunctionData pfd) =>
             {
-                //todo: imp: امکان ثبت اعداد اعشار
                 // گرفتن مقدار کالای درخواستی از مرحله قبل
-                currentTZSessionData.zanbilItemAmount = Convert.ToDouble(pfd.action);
+                currentTZSessionData.zanbilItemAmount = Convert.ToDouble(pfd.action.Replace(".", "/"));
 
                 var unitNames = tzdb.Units.Select(u => u.Title);
                 string[] unitNamesStr = new string[unitNames.Count()];
